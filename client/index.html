@@ -5,6 +5,7 @@
 	<title>TFG</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+	<script src="script.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
@@ -17,36 +18,8 @@
 	<footer>
 
 	</footer>
-
     <script>
-		const _WIDTH  = 1280,
-			  _HEIGHT = 720;
-		var canvas = document.getElementById('canvas');
-			canvas.width = _WIDTH;
-			canvas.height = _HEIGHT;
-		var ctx = canvas.getContext('2d');
-
-		const socket = io();
-		socket.on('update',function(data){
-			ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
-			
-			for(var i in data){
-				ctx.fillText(data[i].id, data[i].x, data[i].y);
-			}
-		})
-
-		document.onkeydown = function(e){
-			if(e.keyCode === 68) socket.emit('keyPress', {inputId:'right', state:true}); //d
-			else if(e.keyCode === 83) socket.emit('keyPress', {inputId:'down',  state:true}); //s
-			else if(e.keyCode === 65) socket.emit('keyPress', {inputId:'left',  state:true}); //a
-			else if(e.keyCode === 87) socket.emit('keyPress', {inputId:'up',    state:true}); //w
-		}
-		document.onkeyup = function(e){
-			if(e.keyCode === 68) socket.emit('keyPress', {inputId:'right', state:false}); //d
-			else if(e.keyCode === 83) socket.emit('keyPress', {inputId:'down',  state:false}); //s
-			else if(e.keyCode === 65) socket.emit('keyPress', {inputId:'left',  state:false}); //a
-			else if(e.keyCode === 87) socket.emit('keyPress', {inputId:'up',    state:false}); //w
-		}
+		loadCanvas();
     </script>
 </body>
 </html>
