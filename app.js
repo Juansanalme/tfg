@@ -100,10 +100,15 @@ class Player {
             player.mousePosition.y = data.y;
         });
 
-        socket.emit('init', socket.id);
+        playerInitPack.push({
+            id: player.id,
+            position: player.position,
+            lookingAt: player.lookingAt,
+        });
     }
     static onDisconnect(socket) {
         delete Player.list[socket.id];
+        playerRemovePack.push(socket.id);
     }
     static update() {
         var pack = [];
@@ -112,7 +117,7 @@ class Player {
             player.update();
             pack.push({
                 id: player.id,
-                pos: player.position,
+                position: player.position,
                 lookingAt: player.lookingAt,
             });
         }
@@ -121,6 +126,7 @@ class Player {
 }
 Player.list = {};
 
+let triggerID = 0;
 var Trigger = function(){
     var self = {
         id:'',
@@ -129,11 +135,10 @@ var Trigger = function(){
     return self;
 }
 
-var bulletID = 0;
 class Bullet {
     constructor(angle) {
         var self = Trigger();
-        self.id = bulletID++;
+        self.id = triggerID++;
         self.lookingAt = angle;
         self.speed = {'x':0,'y':0};
         self.speed.x = Math.cos(angle / 180 * Math.PI) * 10;
@@ -151,6 +156,11 @@ class Bullet {
             self.position.y += self.speed.y;
         }
         Bullet.list[self.id] = self;
+        bulletInitPack.push({
+            id: self.id,
+            position: self.position,
+            lookingAt: self.lookingAt,
+        });
         return self;
     }
     static update() {
@@ -160,10 +170,12 @@ class Bullet {
             bullet.update();
             if (bullet.toRemove) {
                 delete Bullet.list[i];
+                bulletRemovePack.push(bullet.id);
             }
             else {
                 pack.push({
-                    pos: bullet.position,
+                    id: bullet.id,
+                    position: bullet.position,
                     lookingAt: bullet.lookingAt,
                 });
             }
@@ -174,15 +186,15 @@ class Bullet {
 Bullet.list = {};
 
 //SOCKET.IO
-let socketID = 1;
+let entityID = 0;
 var SOCKET_LIST = {};
 
 const io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
-    console.log('socket connection, id = ' + socketID);
+    console.log('socket connection, id = ' + entityID);
     
-    socket.id = socketID++;
-    SOCKET_LIST[socket.id ] = socket;
+    socket.id = entityID++;
+    SOCKET_LIST[socket.id] = socket;
     Player.onConnect(socket);
 
     socket.on('disconnect',function(){
@@ -192,16 +204,29 @@ io.sockets.on('connection', function(socket){
     });
 });
 
+
+var playerInitPack = [];
+var bulletInitPack = [];
+var playerRemovePack = [];
+var bulletRemovePack = [];
+
 //GAME LOOP
 setInterval(function(){
 
-    var packs = {
-        player: Player.update(),
-        bullet: Bullet.update(),
-    }
+    var playerUpdatePack = [];
+    playerUpdatePack.push(Player.update());
+    var bulletUpdatePack = [];
+    bulletUpdatePack.push(Bullet.update());
 
     for(var i in SOCKET_LIST){
-        SOCKET_LIST[i].emit('update', packs);
+        SOCKET_LIST[i].emit('init', i.id , playerInitPack, bulletInitPack);
+        SOCKET_LIST[i].emit('update', playerUpdatePack, bulletUpdatePack);
+        SOCKET_LIST[i].emit('remove', playerRemovePack, bulletRemovePack);
     }
+
+    bulletRemovePack = [];
+    playerRemovePack = [];
+    bulletInitPack = [];
+    playerInitPack = [];
 
 },1000/25);//25 frames per second

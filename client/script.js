@@ -22,40 +22,96 @@ img.map.src = '/client/map.png';
 //GAME DATA
 //entitylist, triggers
 
-var selfID = null;
+let selfID = null;
 Entity.list = {};
+Trigger.list = {};
 
 //INIT
-
-socket.on('init',function(socketID){
-    selfID = socketID;
+socket.on('init',function(socketID, entitiesPack, triggersPack){
+    selfID = socketID;   
+    initPackType(entitiesPack, 0);
+    initPackType(triggersPack, 1);
 });
 
 //UPDATE
-socket.on('update', function(data){
-    ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
-    
-    ctx.drawImage(img.map, 0, 0);
-
-    data.player.forEach(function (e){
-		drawObject(e,img.player);
-    });
-    
-    data.bullet.forEach(function (e){
-        drawObject(e,img.bullet);
-    });
+socket.on('update', function(entitiesPack, triggersPack){
+    updatePackType(entitiesPack, 0);
+    updatePackType(triggersPack, 1);
 });
 
 //REMOVE
+socket.on('remove', function(entitiesPack, triggersPack){
+    removePackType(entitiesPack, 0);
+    removePackType(triggersPack, 1);
+});
+
+//GAME LOOP
+setInterval(function(){
+    ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
+    ctx.drawImage(img.map, 0, 0);
+    
+    for (let i in Entity.list){
+		drawObject(Entity.list[i],img.player);
+	};
+
+    for (let i in Trigger.list){
+        drawObject(Trigger.list[i],img.bullet);
+    };
+});
 
 function drawObject(e, imgType){
     ctx.save();
-    ctx.translate(e.pos.x, e.pos.y);
+    ctx.translate(e.position.x, e.position.y);
     ctx.rotate((e.lookingAt+90)*Math.PI/180);
     ctx.drawImage(imgType, -imgType.width/2, -imgType.height/2);
     ctx.restore();		
 }
 
+function initPackType(list, type){
+    for(let i = 0; i < list.length; i++){
+        switch (type){
+            case 0:
+                var v = new Entity(list[i]);
+                Entity.list[v.id] = v;
+            break;
+            case 1:
+                var v = new Trigger(list[i]);
+                Trigger.list[v.id] = v;
+            break;
+        }
+    }
+}
+
+function updatePackType(list, type){
+    var pack = list[0];
+    for(let i = 0; i < pack.length; i++){
+        var v;
+        switch (type){
+            case 0:
+                v = Entity.list[pack[i].id];
+            break;
+            case 1:
+                v = Trigger.list[pack[i].id];
+            break;
+        }
+        if (v){
+            if (v.position !== undefined) v.position = pack[i].position;
+        }
+    }
+}
+
+function removePackType(list, type){
+    for(let i = 0; i < list.length; i++){
+        switch (type){
+            case 0:
+                delete Player.list[list[i]];
+                break;
+            case 1:
+                delete Trigger.list[list[i]];
+                break;
+        }
+    }
+}
 
 //DOCUMENT EVENTS
 document.onkeydown = function(evt){
