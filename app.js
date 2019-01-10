@@ -1,4 +1,6 @@
 
+
+
 //EXPRESS
 const express = require('express');
 const app = express();
@@ -18,7 +20,7 @@ console.log('Server Started');
 var Entity = function(){
     var self = {
         id:'',
-        position: {'x':200, 'y':200},
+        position: {'x':1280/2, 'y':720/2},
         lookingAt: 0,
         speed: {'x':0, 'y':0},
     }
@@ -97,6 +99,8 @@ class Player {
             player.mousePosition.x = data.x;
             player.mousePosition.y = data.y;
         });
+
+        socket.emit('init', socket.id);
     }
     static onDisconnect(socket) {
         delete Player.list[socket.id];
@@ -177,10 +181,9 @@ const io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
     console.log('socket connection, id = ' + socketID);
     
-    socket.id = socketID;
-    SOCKET_LIST[socketID] = socket;
+    socket.id = socketID++;
+    SOCKET_LIST[socket.id ] = socket;
     Player.onConnect(socket);
-    socketID++;
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);

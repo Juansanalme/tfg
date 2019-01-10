@@ -19,35 +19,51 @@ img.bullet.src = '/client/bullet.png';
 img.map = new Image();
 img.map.src = '/client/map.png';
 
-socket.on('update',function(data){
+//GAME DATA
+//entitylist, triggers
+
+var selfID = null;
+Entity.list = {};
+
+//INIT
+
+socket.on('init',function(socketID){
+    selfID = socketID;
+});
+
+//UPDATE
+socket.on('update', function(data){
     ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
     
     ctx.drawImage(img.map, 0, 0);
 
     data.player.forEach(function (e){
-        ctx.save();
-        ctx.translate(e.pos.x, e.pos.y);
-        ctx.rotate((e.lookingAt+90)*Math.PI/180);
-        ctx.drawImage(img.player, -img.player.width/2, -img.player.height/2);
-        ctx.restore();				
+		drawObject(e,img.player);
     });
     
     data.bullet.forEach(function (e){
-        ctx.save();
-        ctx.translate(e.pos.x, e.pos.y);
-        ctx.rotate((e.lookingAt+90)*Math.PI/180);
-        ctx.drawImage(img.bullet, -img.bullet.width/2, -img.bullet.height/2);
-        ctx.restore();	
+        drawObject(e,img.bullet);
     });
-})
+});
 
+//REMOVE
+
+function drawObject(e, imgType){
+    ctx.save();
+    ctx.translate(e.pos.x, e.pos.y);
+    ctx.rotate((e.lookingAt+90)*Math.PI/180);
+    ctx.drawImage(imgType, -imgType.width/2, -imgType.height/2);
+    ctx.restore();		
+}
+
+
+//DOCUMENT EVENTS
 document.onkeydown = function(evt){
     keyEvent(evt,true);
 }
 document.onkeyup = function(evt){
     keyEvent(evt,false);
 }
-
 document.onmousedown = function(){
     mouseEvent(true);
 }
