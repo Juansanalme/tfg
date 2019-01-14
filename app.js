@@ -1,6 +1,4 @@
 
-
-
 //EXPRESS
 const express = require('express');
 const app = express();
@@ -16,6 +14,9 @@ serv.listen(2000);
 console.log('Server Started');
 
 //GAME 
+
+const _WIDTH  = 1280,
+      _HEIGHT = 720;
 
 var Entity = function(){
     var self = {
@@ -46,7 +47,7 @@ class Player {
         self.pressingLeftClick = false;
         self.mousePosition = { x: 0, y: 0 };
         var super_update = self.update;
-        self.update = function () {
+        self.update = function(){
             self.updateSpd();
             super_update();
             self.calculateAngle();
@@ -54,17 +55,17 @@ class Player {
                 self.shootBullet(self.lookingAt);
             }
         };
-        self.calculateAngle = function () {
-            var x = self.mousePosition.x - self.position.x;
-            var y = self.mousePosition.y - self.position.y;
+        self.calculateAngle = function(){
+            let x = self.mousePosition.x - _WIDTH/2;
+            let y = self.mousePosition.y - _HEIGHT/2;
             self.lookingAt = Math.atan2(y, x) / Math.PI * 180;
         };
-        self.shootBullet = function (angle) {
-            var bullet = new Bullet(angle);
+        self.shootBullet = function(angle){
+            let bullet = new Bullet(angle);
             bullet.position.x = self.position.x;
             bullet.position.y = self.position.y;
         };
-        self.updateSpd = function () {
+        self.updateSpd = function(){
             if (self.pressingR)
                 self.speed.x = self.maxSpeed;
             else if (self.pressingL)
@@ -78,11 +79,28 @@ class Player {
             else
                 self.speed.y = 0;
         };
+
+        self.getInitPack = function(){
+            return{
+                id: self.id,
+                position: self.position,
+                lookingAt: self.lookingAt,
+            }
+        }
+        self.getUpdatePack = function(){
+            return{
+                id: self.id,
+                position: self.position,
+                lookingAt: self.lookingAt,
+            }
+        }
+
         Player.list[self.id] = self;
+        playerInitPack.push(self.getInitPack());
         return self;
     }
     static onConnect(socket) {
-        var player = new Player(socket.id);
+        let player = new Player(socket.id);
         socket.on('keyPress', function (data) {
             if (data.inputId === 'leftClick')
                 player.pressingLeftClick = data.state;
@@ -100,33 +118,32 @@ class Player {
             player.mousePosition.y = data.y;
         });
 
-        playerInitPack.push({
-            id: player.id,
-            position: player.position,
-            lookingAt: player.lookingAt,
-        });
+        socket.emit('sendSelfID', socket.id);
+        socket.emit('init', Player.getAllPlayers(), Bullet.getAllBullets());
     }
     static onDisconnect(socket) {
         delete Player.list[socket.id];
         playerRemovePack.push(socket.id);
     }
     static update() {
-        var pack = [];
-        for (var i in Player.list) {
-            var player = Player.list[i];
+        let pack = [];
+        for (let i in Player.list) {
+            let player = Player.list[i];
             player.update();
-            pack.push({
-                id: player.id,
-                position: player.position,
-                lookingAt: player.lookingAt,
-            });
+            pack.push(player.getUpdatePack());
         }
         return pack;
+    }
+    static getAllPlayers() {
+        let players = [];
+        for (let i in Player.list)
+            players.push(Player.list[i].getInitPack());
+        return players;
     }
 }
 Player.list = {};
 
-let triggerID = 0;
+var triggerID = 0;
 var Trigger = function(){
     var self = {
         id:'',
@@ -155,38 +172,50 @@ class Bullet {
             self.position.x += self.speed.x;
             self.position.y += self.speed.y;
         }
+        self.getInitPack = function(){
+            return{
+                id: self.id,
+                position: self.position,
+                lookingAt: self.lookingAt,
+            }
+        }
+        self.getUpdatePack = function(){
+            return{
+                id: self.id,
+                position: self.position,
+                lookingAt: self.lookingAt,
+            }
+        }
         Bullet.list[self.id] = self;
-        bulletInitPack.push({
-            id: self.id,
-            position: self.position,
-            lookingAt: self.lookingAt,
-        });
+        bulletInitPack.push(self.getInitPack());
         return self;
     }
     static update() {
-        var pack = [];
-        for (var i in Bullet.list) {
-            var bullet = Bullet.list[i];
+        let pack = [];
+        for (let i in Bullet.list) {
+            let bullet = Bullet.list[i];
             bullet.update();
             if (bullet.toRemove) {
                 delete Bullet.list[i];
                 bulletRemovePack.push(bullet.id);
             }
             else {
-                pack.push({
-                    id: bullet.id,
-                    position: bullet.position,
-                    lookingAt: bullet.lookingAt,
-                });
+                pack.push(bullet.getUpdatePack());
             }
         }
         return pack;
+    }
+    static getAllBullets() {
+        let bullets = [];
+        for (let i in Bullet.list)
+            bullets.push(Bullet.list[i].getInitPack());
+        return bullets;
     }
 }
 Bullet.list = {};
 
 //SOCKET.IO
-let entityID = 0;
+var entityID = 0;
 var SOCKET_LIST = {};
 
 const io = require('socket.io')(serv,{});
@@ -204,24 +233,24 @@ io.sockets.on('connection', function(socket){
     });
 });
 
+//GAME LOOP
 
 var playerInitPack = [];
 var bulletInitPack = [];
 var playerRemovePack = [];
 var bulletRemovePack = [];
 
-//GAME LOOP
 setInterval(function(){
 
-    var playerUpdatePack = [];
-    playerUpdatePack.push(Player.update());
-    var bulletUpdatePack = [];
-    bulletUpdatePack.push(Bullet.update());
+    let playerUpdatePack = Player.update();
+    let bulletUpdatePack = Bullet.update();
 
-    for(var i in SOCKET_LIST){
-        SOCKET_LIST[i].emit('init', i.id , playerInitPack, bulletInitPack);
-        SOCKET_LIST[i].emit('update', playerUpdatePack, bulletUpdatePack);
-        SOCKET_LIST[i].emit('remove', playerRemovePack, bulletRemovePack);
+    for(let i in SOCKET_LIST){
+        if (SOCKET_LIST[i]){
+            SOCKET_LIST[i].emit('init'  , playerInitPack  , bulletInitPack);
+            SOCKET_LIST[i].emit('update', playerUpdatePack, bulletUpdatePack);
+            SOCKET_LIST[i].emit('remove', playerRemovePack, bulletRemovePack);
+        }
     }
 
     bulletRemovePack = [];

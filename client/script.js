@@ -20,15 +20,16 @@ img.map = new Image();
 img.map.src = '/client/map.png';
 
 //GAME DATA
-//entitylist, triggers
-
-let selfID = null;
+var selfID = null;
 Entity.list = {};
 Trigger.list = {};
 
+socket.on('sendSelfID', function(socketID){
+    selfID = socketID;
+});
+
 //INIT
-socket.on('init',function(socketID, entitiesPack, triggersPack){
-    selfID = socketID;   
+socket.on('init', function(entitiesPack, triggersPack){
     initPackType(entitiesPack, 0);
     initPackType(triggersPack, 1);
 });
@@ -48,7 +49,9 @@ socket.on('remove', function(entitiesPack, triggersPack){
 //GAME LOOP
 setInterval(function(){
     ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
-    ctx.drawImage(img.map, 0, 0);
+    let x = _WIDTH/2  - Entity.list[selfID].position.x;
+    let y = _HEIGHT/2 - Entity.list[selfID].position.y;
+    ctx.drawImage(img.map, x, y);
     
     for (let i in Entity.list){
 		drawObject(Entity.list[i],img.player);
@@ -61,56 +64,63 @@ setInterval(function(){
 
 function drawObject(e, imgType){
     ctx.save();
-    ctx.translate(e.position.x, e.position.y);
+    let x = e.position.x - Entity.list[selfID].position.x + _WIDTH/2;
+    let y = e.position.y - Entity.list[selfID].position.y + _HEIGHT/2;;
+    if (e.id == selfID){
+        x = _WIDTH/2;
+        y = _HEIGHT/2;
+    }
+    ctx.translate(x, y);
     ctx.rotate((e.lookingAt+90)*Math.PI/180);
     ctx.drawImage(imgType, -imgType.width/2, -imgType.height/2);
     ctx.restore();		
 }
 
 function initPackType(list, type){
-    for(let i = 0; i < list.length; i++){
+    list.forEach(element => {
+        let v;
         switch (type){
             case 0:
-                var v = new Entity(list[i]);
+                v = new Entity(element);
                 Entity.list[v.id] = v;
             break;
             case 1:
-                var v = new Trigger(list[i]);
+                v = new Trigger(element);
                 Trigger.list[v.id] = v;
             break;
         }
-    }
+    });
 }
 
 function updatePackType(list, type){
-    var pack = list[0];
-    for(let i = 0; i < pack.length; i++){
-        var v;
+    list.forEach(element => {
+        let v;
         switch (type){
             case 0:
-                v = Entity.list[pack[i].id];
+                v = Entity.list[element.id];
             break;
             case 1:
-                v = Trigger.list[pack[i].id];
+                v = Trigger.list[element.id];
             break;
         }
         if (v){
-            if (v.position !== undefined) v.position = pack[i].position;
-        }
-    }
+            if (v.position !== undefined) v.position = element.position;
+            if (v.lookingAt !== undefined) v.lookingAt = element.lookingAt;
+        }   
+    });
 }
 
 function removePackType(list, type){
-    for(let i = 0; i < list.length; i++){
+    list.forEach(element => {
         switch (type){
             case 0:
-                delete Player.list[list[i]];
-                break;
+                delete Entity.list[element];
+            break;
             case 1:
-                delete Trigger.list[list[i]];
-                break;
+                delete Trigger.list[element];
+            break;
         }
-    }
+    });
 }
 
 //DOCUMENT EVENTS
