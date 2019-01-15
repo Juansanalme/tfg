@@ -6,6 +6,7 @@ class Entity {
         this.imgSource = pack.imgSource;
     }
 }
+Entity.list = {};
 
 class Trigger {
     constructor(pack){
@@ -15,3 +16,4 @@ class Trigger {
         this.imgSource = pack.imgSource;
     }
 }
+Trigger.list = {};

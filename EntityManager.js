@@ -1,19 +1,4 @@
-
-//EXPRESS
-const express = require('express');
-const app = express();
-const serv = require('http').Server(app);
-
-app.get('/',function(req, res){
-    res.sendFile(__dirname + '/client/index.html');
-});
-app.use(express.static(__dirname + '/client'));
-app.use('/client', express.static(__dirname + '/client'));
-
-serv.listen(2000);
-console.log('Server Started');
-
-//GAME 
+const Bullet = require ('./EventManager');
 
 const _WIDTH  = 1280,
       _HEIGHT = 720;
@@ -96,9 +81,10 @@ class Player {
         }
 
         Player.list[self.id] = self;
-        playerInitPack.push(self.getInitPack());
+        Player.initPack.push(self.getInitPack());
         return self;
     }
+
     static onConnect(socket) {
         let player = new Player(socket.id);
         socket.on('keyPress', function (data) {
@@ -121,11 +107,24 @@ class Player {
         socket.emit('sendSelfID', socket.id);
         socket.emit('init', Player.getAllPlayers(), Bullet.getAllBullets());
     }
+
     static onDisconnect(socket) {
         delete Player.list[socket.id];
-        playerRemovePack.push(socket.id);
+        Player.removePack.push(socket.id);
     }
-    static update() {
+
+    static emptyPacks() {
+        Player.initPack = [];
+        Player.removePack = [];
+    }
+    static getInitPack() {
+        return Player.initPack;
+    }
+    static getRemovePack() {
+        return Player.removePack;
+    }
+
+    static getUpdate() {
         let pack = [];
         for (let i in Player.list) {
             let player = Player.list[i];
@@ -134,6 +133,7 @@ class Player {
         }
         return pack;
     }
+
     static getAllPlayers() {
         let players = [];
         for (let i in Player.list)
@@ -141,121 +141,9 @@ class Player {
         return players;
     }
 }
+
 Player.list = {};
+Player.initPack = [];
+Player.removePack = [];
 
-var triggerID = 0;
-var Trigger = function(){
-    var self = {
-        id:'',
-        position: {'x':0, 'y':0},
-    }
-    return self;
-}
-
-class Bullet {
-    constructor(angle) {
-        var self = Trigger();
-        self.id = triggerID++;
-        self.lookingAt = angle;
-        self.speed = {'x':0,'y':0};
-        self.speed.x = Math.cos(angle / 180 * Math.PI) * 10;
-        self.speed.y = Math.sin(angle / 180 * Math.PI) * 10;
-        self.timer = 0;
-        self.toRemove = false;
-
-        self.update = function () {
-            if (self.timer++ > 60)
-                self.toRemove = true;
-            self.updatePosition();
-        };
-        self.updatePosition = function(){
-            self.position.x += self.speed.x;
-            self.position.y += self.speed.y;
-        }
-        self.getInitPack = function(){
-            return{
-                id: self.id,
-                position: self.position,
-                lookingAt: self.lookingAt,
-            }
-        }
-        self.getUpdatePack = function(){
-            return{
-                id: self.id,
-                position: self.position,
-                lookingAt: self.lookingAt,
-            }
-        }
-        Bullet.list[self.id] = self;
-        bulletInitPack.push(self.getInitPack());
-        return self;
-    }
-    static update() {
-        let pack = [];
-        for (let i in Bullet.list) {
-            let bullet = Bullet.list[i];
-            bullet.update();
-            if (bullet.toRemove) {
-                delete Bullet.list[i];
-                bulletRemovePack.push(bullet.id);
-            }
-            else {
-                pack.push(bullet.getUpdatePack());
-            }
-        }
-        return pack;
-    }
-    static getAllBullets() {
-        let bullets = [];
-        for (let i in Bullet.list)
-            bullets.push(Bullet.list[i].getInitPack());
-        return bullets;
-    }
-}
-Bullet.list = {};
-
-//SOCKET.IO
-var entityID = 0;
-var SOCKET_LIST = {};
-
-const io = require('socket.io')(serv,{});
-io.sockets.on('connection', function(socket){
-    console.log('socket connection, id = ' + entityID);
-    
-    socket.id = entityID++;
-    SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket);
-
-    socket.on('disconnect',function(){
-        console.log('socket disconnection, id = ' + socket.id);
-        delete SOCKET_LIST[socket.id];
-        Player.onDisconnect(socket);
-    });
-});
-
-//GAME LOOP
-
-var playerInitPack = [];
-var bulletInitPack = [];
-var playerRemovePack = [];
-var bulletRemovePack = [];
-
-setInterval(function(){
-
-    let playerUpdatePack = Player.update();
-    let bulletUpdatePack = Bullet.update();
-
-    for(let i in SOCKET_LIST){
-        if (SOCKET_LIST[i]){
-            SOCKET_LIST[i].emit('init'  , playerInitPack  , bulletInitPack);
-            SOCKET_LIST[i].emit('update', playerUpdatePack, bulletUpdatePack);
-            SOCKET_LIST[i].emit('remove', playerRemovePack, bulletRemovePack);
-        }
-    }
-
-    bulletRemovePack = [];
-    playerRemovePack = [];
-    bulletInitPack = [];
-    playerInitPack = [];
-
-},1000/25);//25 frames per second
+module.exports = Player ;

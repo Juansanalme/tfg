@@ -21,8 +21,6 @@ img.map.src = '/client/map.png';
 
 //GAME DATA
 var selfID = null;
-Entity.list = {};
-Trigger.list = {};
 
 socket.on('sendSelfID', function(socketID){
     selfID = socketID;
