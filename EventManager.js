@@ -2,21 +2,21 @@ var triggerID = 0;
 var Trigger = function(){
     var self = {
         id:'',
-        position: {'x':0, 'y':0},
+        position: {'x':0, 'z':0},
     }
     return self;
 }
 
 class Bullet {
-    constructor(angle, x, y) {
+    constructor(angle, x, z) {
         var self = Trigger();
         self.id = triggerID++;
         self.position.x = x;
-        self.position.y = y;
+        self.position.z = z;
         self.lookingAt = angle;
-        self.speed = {'x':0,'y':0};
-        self.speed.x = Math.cos(angle / 180 * Math.PI) * 10;
-        self.speed.y = Math.sin(angle / 180 * Math.PI) * 10;
+        self.speed = {'x':0,'z':0};
+        self.speed.x = Math.cos(angle / 180 * Math.PI) * .25;
+        self.speed.z = Math.sin(angle / 180 * Math.PI) * .25;
         self.timer = 0;
         self.toRemove = false;
 
@@ -27,7 +27,7 @@ class Bullet {
         };
         self.updatePosition = function(){
             self.position.x += self.speed.x;
-            self.position.y += self.speed.y;
+            self.position.z += self.speed.z;
         }
         self.getInitPack = function(){
             return{

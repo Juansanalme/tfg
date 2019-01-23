@@ -1,19 +1,23 @@
 class Entity {
-    constructor(pack){
+    constructor(pack, scene){
         this.id = pack.id;
-        this.position = pack.position;
         this.lookingAt = pack.lookingAt;
-        this.imgSource = pack.imgSource;
+
+        this.body = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter:1}, scene);
+        this.body.position.x = pack.position.x;
+        this.body.position.z = pack.position.z;
     }
 }
 Entity.list = {};
 
 class Trigger {
-    constructor(pack){
+    constructor(pack, scene){
         this.id = pack.id;
-        this.position = pack.position;
         this.lookingAt = pack.lookingAt;
-        this.imgSource = pack.imgSource;
+
+        this.body = BABYLON.MeshBuilder.CreateBox("box", {height: .1, width: .1, depth: .1}, scene);
+        this.body.position.x = pack.position.x;
+        this.body.position.z = pack.position.z;
     }
 }
 Trigger.list = {};

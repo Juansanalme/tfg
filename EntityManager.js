@@ -6,16 +6,16 @@ const _WIDTH  = 1280,
 var Entity = function(){
     var self = {
         id:'',
-        position: {'x':1280/2, 'y':720/2},
+        position: {'x':0, 'z':0},
         lookingAt: 0,
-        speed: {'x':0, 'y':0},
+        speed: {'x':0, 'z':0},
     }
     self.update = function(){
         self.updatePosition();
     }
     self.updatePosition = function(){
         self.position.x += self.speed.x;
-        self.position.y += self.speed.y;
+        self.position.z += self.speed.z;
     }
     return self;
 }
@@ -24,7 +24,7 @@ class Player {
     constructor(id) {
         var self = Entity();
         self.id = id;
-        self.maxSpeed = 10;
+        self.maxSpeed = 0.25;
         self.pressingR = false;
         self.pressingL = false;
         self.pressingU = false;
@@ -43,24 +43,24 @@ class Player {
         self.calculateAngle = function(){
             let x = self.mousePosition.x - _WIDTH/2;
             let y = self.mousePosition.y - _HEIGHT/2;
-            self.lookingAt = Math.atan2(y, x) / Math.PI * 180;
+            self.lookingAt = Math.atan2(-x, -y) / Math.PI * 180;
         };
         self.shootBullet = function(angle){
-            new Bullet(angle, self.position.x, self.position.y);
+            new Bullet(angle, self.position.x, self.position.z);
         };
         self.updateSpd = function(){
             if (self.pressingR)
-                self.speed.x = self.maxSpeed;
+                self.speed.z = -self.maxSpeed;
             else if (self.pressingL)
+                self.speed.z = self.maxSpeed;
+            else
+                self.speed.z = 0;
+            if (self.pressingU)
+                self.speed.x = self.maxSpeed;
+            else if (self.pressingD)
                 self.speed.x = -self.maxSpeed;
             else
                 self.speed.x = 0;
-            if (self.pressingU)
-                self.speed.y = -self.maxSpeed;
-            else if (self.pressingD)
-                self.speed.y = self.maxSpeed;
-            else
-                self.speed.y = 0;
         };
 
         self.getInitPack = function(){
@@ -102,8 +102,8 @@ class Player {
             player.mousePosition.y = data.y;
         });
 
-        socket.emit('sendSelfID', socket.id);
         socket.emit('init', Player.getAllPlayers(), Bullet.getAllBullets());
+        socket.emit('sendSelfID', socket.id);
     }
 
     static onDisconnect(socket) {
