@@ -46,9 +46,7 @@ class Player {
             self.lookingAt = Math.atan2(y, x) / Math.PI * 180;
         };
         self.shootBullet = function(angle){
-            let bullet = new Bullet(angle);
-            bullet.position.x = self.position.x;
-            bullet.position.y = self.position.y;
+            new Bullet(angle, self.position.x, self.position.y);
         };
         self.updateSpd = function(){
             if (self.pressingR)
@@ -146,4 +144,4 @@ Player.list = {};
 Player.initPack = [];
 Player.removePack = [];
 
-module.exports = Player ;
+module.exports = Player;

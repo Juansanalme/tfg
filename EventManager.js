@@ -8,9 +8,11 @@ var Trigger = function(){
 }
 
 class Bullet {
-    constructor(angle) {
+    constructor(angle, x, y) {
         var self = Trigger();
         self.id = triggerID++;
+        self.position.x = x;
+        self.position.y = y;
         self.lookingAt = angle;
         self.speed = {'x':0,'y':0};
         self.speed.x = Math.cos(angle / 180 * Math.PI) * 10;

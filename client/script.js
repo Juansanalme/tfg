@@ -34,30 +34,32 @@ socket.on('init', function(entitiesPack, triggersPack){
 
 //UPDATE
 socket.on('update', function(entitiesPack, triggersPack){
-    updatePackType(entitiesPack, 0);
-    updatePackType(triggersPack, 1);
+    updatePackType(entitiesPack, Entity.list);
+    updatePackType(triggersPack, Trigger.list);
 });
 
 //REMOVE
 socket.on('remove', function(entitiesPack, triggersPack){
-    removePackType(entitiesPack, 0);
-    removePackType(triggersPack, 1);
+    removePackType(entitiesPack, Entity.list);
+    removePackType(triggersPack, Trigger.list);
 });
 
 //GAME LOOP
 setInterval(function(){
-    ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
-    let x = _WIDTH/2  - Entity.list[selfID].position.x;
-    let y = _HEIGHT/2 - Entity.list[selfID].position.y;
-    ctx.drawImage(img.map, x, y);
-    
-    for (let i in Entity.list){
-		drawObject(Entity.list[i],img.player);
-	};
+    if(selfID){
+        ctx.clearRect(0, 0, _WIDTH, _HEIGHT);
+        let x = _WIDTH/2  - Entity.list[selfID].position.x;
+        let y = _HEIGHT/2 - Entity.list[selfID].position.y;
+        ctx.drawImage(img.map, x, y);
+        
+        for (let i in Entity.list){
+            drawObject(Entity.list[i],img.player);
+        };
 
-    for (let i in Trigger.list){
-        drawObject(Trigger.list[i],img.bullet);
-    };
+        for (let i in Trigger.list){
+            drawObject(Trigger.list[i],img.bullet);
+        };
+    }
 });
 
 function drawObject(e, imgType){
@@ -74,8 +76,8 @@ function drawObject(e, imgType){
     ctx.restore();		
 }
 
-function initPackType(list, type){
-    list.forEach(element => {
+function initPackType(pack, type){
+    pack.forEach(element => {
         let v;
         switch (type){
             case 0:
@@ -90,17 +92,9 @@ function initPackType(list, type){
     });
 }
 
-function updatePackType(list, type){
-    list.forEach(element => {
-        let v;
-        switch (type){
-            case 0:
-                v = Entity.list[element.id];
-            break;
-            case 1:
-                v = Trigger.list[element.id];
-            break;
-        }
+function updatePackType(pack, typeList){
+    pack.forEach(element => {
+        let v = typeList[element.id];
         if (v){
             if (v.position !== undefined) v.position = element.position;
             if (v.lookingAt !== undefined) v.lookingAt = element.lookingAt;
@@ -108,16 +102,9 @@ function updatePackType(list, type){
     });
 }
 
-function removePackType(list, type){
-    list.forEach(element => {
-        switch (type){
-            case 0:
-                delete Entity.list[element];
-            break;
-            case 1:
-                delete Trigger.list[element];
-            break;
-        }
+function removePackType(pack, typeList){
+    pack.forEach(element => {
+        delete typeList[element];
     });
 }
 
@@ -135,7 +122,7 @@ document.onmouseup = function(){
     mouseEvent(false);
 }
 document.onmousemove = function(evt){
-    var mousePosition = getMousePosition(evt);
+    let mousePosition = getMousePosition(evt);
     socket.emit('mouseMove', mousePosition);
 }
 
@@ -151,7 +138,7 @@ function mouseEvent(bool){
 }
 
 function getMousePosition(evt) {
-    var rect = canvas.getBoundingClientRect();
+    let rect = canvas.getBoundingClientRect();
     return{
         x: evt.clientX - rect.left,
         y: evt.clientY - rect.top,

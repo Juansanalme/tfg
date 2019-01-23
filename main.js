@@ -1,5 +1,5 @@
 const Player = require ('./EntityManager');
-const Bullet = require ('./EventManager');
+const Bullet = require('./EventManager');
 
 //EXPRESS
 const express = require('express');
@@ -16,7 +16,7 @@ serv.listen(2000);
 console.log('Server Started');
 
 //SOCKET.IO
-var entityID = 0;
+var entityID = 1;
 var SOCKET_LIST = {};
 
 const io = require('socket.io')(serv,{});
@@ -35,18 +35,17 @@ io.sockets.on('connection', function(socket){
 });
 
 //GAME LOOP
-
 setInterval(function(){
 
     let playerUpdatePacks = Player.getUpdate();
     let BulletUpdatePacks = Bullet.getUpdate();
 
     for(let i in SOCKET_LIST){
-        if (SOCKET_LIST[i] && typeof SOCKET_LIST[i].emit === "function" && SOCKET_LIST[i].emit){
-            SOCKET_LIST[i].emit('init'  , Player.getInitPack()  , Bullet.getInitPack());
-            SOCKET_LIST[i].emit('update', playerUpdatePacks     , BulletUpdatePacks);
-            SOCKET_LIST[i].emit('remove', Player.getRemovePack(), Bullet.getRemovePack());
-        }
+        //if (SOCKET_LIST[i] && typeof SOCKET_LIST[i].emit === "function" && SOCKET_LIST[i].emit){
+            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('init', Player.getInitPack(), Bullet.getInitPack());
+            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('update', playerUpdatePacks, BulletUpdatePacks);
+            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('remove', Player.getRemovePack(), Bullet.getRemovePack());
+        //}
     }
 
     Player.emptyPacks();
