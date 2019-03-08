@@ -18,14 +18,14 @@ function loadCanvas() {
     });
 }
 
-/******* Add the create scene function ******/
+//SCENE
 var createScene = function () {
 
     // Create the scene space
     let scene = new BABYLON.Scene(engine);
 
     // Add a camera to the scene and attach it to the canvas
-    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(-10,30,0), scene);
+    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(-10,40,0), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
     //camera.attachControl(canvas, false);
 
@@ -37,7 +37,6 @@ var createScene = function () {
 
     return scene;
 };
-/******* End of the create scene function ******/    
 
 //GAME DATA
 var selfID = null;
@@ -92,7 +91,7 @@ function updatePackType(pack, type){
                 v = Entity.list[element.id];
                 if (v){
                     if (v.id == selfID){
-                        camera.position.x = element.position.x - 10;
+                        camera.position.x = element.position.x -10;
                         camera.position.z = element.position.z;
                     }
                 }  
@@ -143,7 +142,7 @@ function keyEvent(evt, bool) {
     else if(evt.keyCode === 87) socket.emit('keyPress', {inputId:'up',    state:bool}); //w
 }
 
-function mouseEvent(bool){
+function mouseEvent(bool) {
     socket.emit('keyPress', {inputId:'leftClick', state:bool});
 }
 

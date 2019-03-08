@@ -25,18 +25,14 @@ class Player {
         var self = Entity();
         self.id = id;
         self.maxSpeed = 0.25;
-        self.pressingR = false;
-        self.pressingL = false;
-        self.pressingU = false;
-        self.pressingD = false;
-        self.pressingLeftClick = false;
+        self.input = { d:false, a:false, w:false, s:false, mouse:false};
         self.mousePosition = { x: 0, y: 0 };
         var super_update = self.update;
         self.update = function(){
             self.updateSpd();
             super_update();
             self.calculateAngle();
-            if (self.pressingLeftClick) {
+            if (self.input.mouse) {
                 self.shootBullet(self.lookingAt);
             }
         };
@@ -49,15 +45,16 @@ class Player {
             new Bullet(angle, self.position.x, self.position.z);
         };
         self.updateSpd = function(){
-            if (self.pressingR)
+            if (self.input.d)
                 self.speed.z = -self.maxSpeed;
-            else if (self.pressingL)
+            else if (self.input.a)
                 self.speed.z = self.maxSpeed;
             else
                 self.speed.z = 0;
-            if (self.pressingU)
+
+            if (self.input.w)
                 self.speed.x = self.maxSpeed;
-            else if (self.pressingD)
+            else if (self.input.s)
                 self.speed.x = -self.maxSpeed;
             else
                 self.speed.x = 0;
@@ -70,6 +67,7 @@ class Player {
                 lookingAt: self.lookingAt,
             }
         }
+
         self.getUpdatePack = function(){
             return{
                 id: self.id,
@@ -85,17 +83,18 @@ class Player {
 
     static onConnect(socket) {
         let player = new Player(socket.id);
+        
         socket.on('keyPress', function (data) {
             if (data.inputId === 'leftClick')
-                player.pressingLeftClick = data.state;
+                player.input.mouse = data.state;
             else if (data.inputId === 'left')
-                player.pressingL = data.state;
+                player.input.a = data.state;
             else if (data.inputId === 'down')
-                player.pressingD = data.state;
+                player.input.s = data.state;
             else if (data.inputId === 'right')
-                player.pressingR = data.state;
+                player.input.d = data.state;
             else if (data.inputId === 'up')
-                player.pressingU = data.state;
+                player.input.w = data.state;
         });
         socket.on('mouseMove', function (data) {
             player.mousePosition.x = data.x;
@@ -111,15 +110,11 @@ class Player {
         Player.removePack.push(socket.id);
     }
 
-    static emptyPacks() {
-        Player.initPack = [];
-        Player.removePack = [];
-    }
-    static getInitPack() {
-        return Player.initPack;
-    }
-    static getRemovePack() {
-        return Player.removePack;
+    static getAllPlayers() {
+        let players = [];
+        for (let i in Player.list)
+            players.push(Player.list[i].getInitPack());
+        return players;
     }
 
     static getUpdate() {
@@ -132,11 +127,19 @@ class Player {
         return pack;
     }
 
-    static getAllPlayers() {
-        let players = [];
-        for (let i in Player.list)
-            players.push(Player.list[i].getInitPack());
-        return players;
+    static getFrameUpdateData() {
+        let packs = {
+            init:   Player.initPack,
+            remove: Player.removePack,           
+            update: Player.getUpdate(),
+        }
+        Player.emptyPacks();
+        return packs;
+    }
+
+    static emptyPacks() {
+        Player.initPack = [];
+        Player.removePack = [];
     }
 }
 

@@ -15,8 +15,8 @@ class Bullet {
         self.position.z = z;
         self.lookingAt = angle;
         self.speed = {'x':0,'z':0};
-        self.speed.x = Math.cos(angle / 180 * Math.PI) * .25;
-        self.speed.z = Math.sin(angle / 180 * Math.PI) * .25;
+        self.speed.x = Math.cos(angle / 180 * Math.PI) * .5;
+        self.speed.z = Math.sin(angle / 180 * Math.PI) * .5;
         self.timer = 0;
         self.toRemove = false;
 
@@ -29,6 +29,8 @@ class Bullet {
             self.position.x += self.speed.x;
             self.position.z += self.speed.z;
         }
+
+
         self.getInitPack = function(){
             return{
                 id: self.id,
@@ -43,20 +45,17 @@ class Bullet {
                 lookingAt: self.lookingAt,
             }
         }
+
         Bullet.list[self.id] = self;
         Bullet.initPack.push(self.getInitPack());
         return self;
     }
 
-    static emptyPacks() {
-        Bullet.initPack = [];
-        Bullet.removePack = [];
-    } 
-    static getInitPack() {
-        return Bullet.initPack;
-    }
-    static getRemovePack() {
-        return Bullet.removePack;
+    static getAllBullets() {
+        let bullets = [];
+        for (let i in Bullet.list)
+            bullets.push(Bullet.list[i].getInitPack());
+        return bullets;
     }
 
     static getUpdate() {
@@ -75,11 +74,19 @@ class Bullet {
         return pack;
     }
 
-    static getAllBullets() {
-        let bullets = [];
-        for (let i in Bullet.list)
-            bullets.push(Bullet.list[i].getInitPack());
-        return bullets;
+    static getFrameUpdateData() {
+        let packs = {
+            init:   Bullet.initPack,
+            remove: Bullet.removePack,           
+            update: Bullet.getUpdate(),
+        }
+        Bullet.emptyPacks();
+        return packs;
+    }
+
+    static emptyPacks() {
+        Bullet.initPack = [];
+        Bullet.removePack = [];
     }
 }
 

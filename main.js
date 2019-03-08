@@ -1,4 +1,6 @@
-const Player = require ('./EntityManager');
+//module exports
+const p2 = require('p2');
+const Player = require('./EntityManager');
 const Bullet = require('./EventManager');
 
 //EXPRESS
@@ -34,21 +36,23 @@ io.sockets.on('connection', function(socket){
     });
 });
 
+//p2 WORLD
+var world = new p2.World({
+    gravity:[0, 0]
+});
+
 //GAME LOOP
 setInterval(function(){
 
-    let playerUpdatePacks = Player.getUpdate();
-    let BulletUpdatePacks = Bullet.getUpdate();
+    let playerPacks = Player.getFrameUpdateData();
+    let bulletPacks = Bullet.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
         //if (SOCKET_LIST[i] && typeof SOCKET_LIST[i].emit === "function" && SOCKET_LIST[i].emit){
-            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('init', Player.getInitPack(), Bullet.getInitPack());
-            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('update', playerUpdatePacks, BulletUpdatePacks);
-            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('remove', Player.getRemovePack(), Bullet.getRemovePack());
+            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init);
+            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('update', playerPacks.update, bulletPacks.update);
+            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('remove', playerPacks.remove, bulletPacks.remove);
         //}
     }
-
-    Player.emptyPacks();
-    Bullet.emptyPacks();
 
 },1000/25);//25 frames per second
