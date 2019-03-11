@@ -1,3 +1,5 @@
+const p2 = require('p2');
+const World = require('./WorldManager');
 const Bullet = require ('./EventManager');
 
 const _WIDTH  = 1280,
@@ -6,16 +8,9 @@ const _WIDTH  = 1280,
 var Entity = function(){
     var self = {
         id:'',
-        position: {'x':0, 'z':0},
+        //position: {'x':0, 'z':0},
         lookingAt: 0,
-        speed: {'x':0, 'z':0},
-    }
-    self.update = function(){
-        self.updatePosition();
-    }
-    self.updatePosition = function(){
-        self.position.x += self.speed.x;
-        self.position.z += self.speed.z;
+        //speed: {'x':0, 'z':0},
     }
     return self;
 }
@@ -24,13 +19,25 @@ class Player {
     constructor(id) {
         var self = Entity();
         self.id = id;
-        self.maxSpeed = 0.25;
         self.input = { d:false, a:false, w:false, s:false, mouse:false};
         self.mousePosition = { x: 0, y: 0 };
-        var super_update = self.update;
+
+        // Create an empty dynamic body
+        self.circleBody = new p2.Body({
+            mass: 5,
+            position: [0, 0]
+        });
+        
+        // Add a circle shape to the body.
+        self.circleShape = new p2.Box({height:1, width:1});
+        self.circleBody.addShape(self.circleShape);
+        
+        // ...and add the body to the world.
+        // If we don't add it to the world, it won't be simulated.
+        World.addBody(self.circleBody);
+
         self.update = function(){
             self.updateSpd();
-            super_update();
             self.calculateAngle();
             if (self.input.mouse) {
                 self.shootBullet(self.lookingAt);
@@ -39,31 +46,31 @@ class Player {
         self.calculateAngle = function(){
             let x = self.mousePosition.x - _WIDTH/2;
             let y = self.mousePosition.y - _HEIGHT/2;
-            self.lookingAt = Math.atan2(-x, -y) / Math.PI * 180;
+            self.lookingAt = Math.atan2(-x, -y) / Math.PI * 180 + 90;
         };
         self.shootBullet = function(angle){
-            new Bullet(angle, self.position.x, self.position.z);
+            new Bullet(angle, self.circleBody.position[0], self.circleBody.position[1]);
         };
         self.updateSpd = function(){
             if (self.input.d)
-                self.speed.z = -self.maxSpeed;
+                self.circleBody.velocity[0] = 20;
             else if (self.input.a)
-                self.speed.z = self.maxSpeed;
+                self.circleBody.velocity[0] = -20;
             else
-                self.speed.z = 0;
+                self.circleBody.velocity[0] = 0;
 
             if (self.input.w)
-                self.speed.x = self.maxSpeed;
+                self.circleBody.velocity[1] = 20;
             else if (self.input.s)
-                self.speed.x = -self.maxSpeed;
+                self.circleBody.velocity[1] = -20;
             else
-                self.speed.x = 0;
+                self.circleBody.velocity[1] = 0;
         };
 
         self.getInitPack = function(){
             return{
                 id: self.id,
-                position: self.position,
+                position: {'x':self.circleBody.position[0], 'z':self.circleBody.position[1]},
                 lookingAt: self.lookingAt,
             }
         }
@@ -71,7 +78,7 @@ class Player {
         self.getUpdatePack = function(){
             return{
                 id: self.id,
-                position: self.position,
+                position: {'x':self.circleBody.position[0], 'z':self.circleBody.position[1]},
                 lookingAt: self.lookingAt,
             }
         }
@@ -101,6 +108,7 @@ class Player {
             player.mousePosition.y = data.y;
         });
 
+        socket.emit('loadWorld', World.blocks, World.map);
         socket.emit('init', Player.getAllPlayers(), Bullet.getAllBullets());
         socket.emit('sendSelfID', socket.id);
     }

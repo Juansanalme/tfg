@@ -1,7 +1,7 @@
 //module exports
-const p2 = require('p2');
+const World = require('./WorldManager');
 const Player = require('./EntityManager');
-const Bullet = require('./EventManager');
+const Trigger = require('./EventManager');
 
 //EXPRESS
 const express = require('express');
@@ -17,6 +17,10 @@ app.use('/client', express.static(__dirname + '/client'));
 serv.listen(2000);
 console.log('Server Started');
 
+//load World
+console.log('Loading World...');
+World.load();
+
 //SOCKET.IO
 var entityID = 1;
 var SOCKET_LIST = {};
@@ -31,28 +35,29 @@ io.sockets.on('connection', function(socket){
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);
-        delete SOCKET_LIST[socket.id];
         Player.onDisconnect(socket);
+        SOCKET_LIST[socket.id].toDelete = true;
     });
 });
 
-//p2 WORLD
-var world = new p2.World({
-    gravity:[0, 0]
-});
-
 //GAME LOOP
+const timeStep = 1 / 60;
 setInterval(function(){
 
+    World.step(timeStep);
+
     let playerPacks = Player.getFrameUpdateData();
-    let bulletPacks = Bullet.getFrameUpdateData();
+    let bulletPacks = Trigger.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
-        //if (SOCKET_LIST[i] && typeof SOCKET_LIST[i].emit === "function" && SOCKET_LIST[i].emit){
-            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init);
-            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('update', playerPacks.update, bulletPacks.update);
-            if (SOCKET_LIST[i]) SOCKET_LIST[i].emit('remove', playerPacks.remove, bulletPacks.remove);
-        //}
+        SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init);
+        SOCKET_LIST[i].emit('update', playerPacks.update, bulletPacks.update);
+        SOCKET_LIST[i].emit('remove', playerPacks.remove, bulletPacks.remove);
+
+        if (SOCKET_LIST[i] && SOCKET_LIST[i].toDelete){
+            delete SOCKET_LIST[i];
+            console.log('socket with id = ' + i + ' deleted');
+        }
     }
 
-},1000/25);//25 frames per second
+},1000 * timeStep);

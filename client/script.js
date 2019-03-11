@@ -25,7 +25,7 @@ var createScene = function () {
     let scene = new BABYLON.Scene(engine);
 
     // Add a camera to the scene and attach it to the canvas
-    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(-10,40,0), scene);
+    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(0,40,-10), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
     //camera.attachControl(canvas, false);
 
@@ -35,6 +35,8 @@ var createScene = function () {
 
     scene.preventDefaultOnPointerDown = false;
 
+    //showAxis(scene, 5);
+
     return scene;
 };
 
@@ -43,6 +45,51 @@ var selfID = null;
 
 socket.on('sendSelfID', function(socketID){
     selfID = socketID;
+});
+
+//LOAD WORLD
+socket.on('loadWorld', function(worldBlocks, worldMap){
+
+    let width = worldMap.groundWidth;
+    let height = worldMap.groundHeight;
+
+    for(let i in worldMap.mapMatrix){
+        for(let j in worldMap.mapMatrix[i]){
+            
+            let ground = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
+            let myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
+        
+            let grassTexture;
+
+            switch(worldMap.mapMatrix[i][j]){
+                case 0: grassTexture = new BABYLON.Texture("./textures/waterTile.jpg", scene);
+                    break;
+                case 1: grassTexture = new BABYLON.Texture("./textures/grassTile.jpg", scene);
+                    break;
+                case 2: grassTexture = new BABYLON.Texture("./textures/sandTile.jpg", scene);
+                    break;
+                case 3: grassTexture = new BABYLON.Texture("./textures/plankTile.jpg", scene);
+                    break;
+                case 4: grassTexture = new BABYLON.Texture("./textures/pathTile.jpg", scene);
+                    break;
+            }
+            myMaterial.diffuseTexture = grassTexture;
+            myMaterial.specularTexture = grassTexture;
+            myMaterial.emissiveTexture = grassTexture;
+            myMaterial.ambientTexture = grassTexture;
+            ground.material = myMaterial;
+
+            ground.position.x = j * height;
+            ground.position.z = i * width;
+        }
+    }
+
+    worldBlocks.forEach(element => {
+        let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
+        block.position.x = element.pX;
+        block.position.z = element.pZ;
+    });
+
 });
 
 //INIT
@@ -65,17 +112,16 @@ socket.on('remove', function(entitiesPack, triggersPack){
 
 function initPackType(pack, type){
     pack.forEach(element => {
-        let v;
         switch (type){
             case 0:
                 if(!Entity.list[element.id]){
-                    v = new Entity(element, scene);
+                    let v = new Entity(element, scene);
                     Entity.list[v.id] = v;
                 }
             break;
             case 1:
                 if(!Trigger.list[element.id]){
-                    v = new Trigger(element, scene);
+                    let v = new Trigger(element, scene);
                     Trigger.list[v.id] = v;
                 }
             break;
@@ -91,8 +137,8 @@ function updatePackType(pack, type){
                 v = Entity.list[element.id];
                 if (v){
                     if (v.id == selfID){
-                        camera.position.x = element.position.x -10;
-                        camera.position.z = element.position.z;
+                        camera.position.x = element.position.x;
+                        camera.position.z = element.position.z -10;
                     }
                 }  
             break;
@@ -153,3 +199,41 @@ function getMousePosition(evt) {
         y: evt.clientY - rect.top,
     };
 }
+
+
+// show axis
+var showAxis = function(scene,size) {
+    var makeTextPlane = function(text, color, size) {
+    var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 50, scene, true);
+    dynamicTexture.hasAlpha = true;
+    dynamicTexture.drawText(text, 5, 40, "bold 36px Arial", color , "transparent", true);
+    var plane = new BABYLON.Mesh.CreatePlane("TextPlane", size, scene, true);
+    plane.material = new BABYLON.StandardMaterial("TextPlaneMaterial", scene);
+    plane.material.backFaceCulling = false;
+    plane.material.specularColor = new BABYLON.Color3(0, 0, 0);
+    plane.material.diffuseTexture = dynamicTexture;
+    return plane;
+     };
+  
+    var axisX = BABYLON.Mesh.CreateLines("axisX", [ 
+      new BABYLON.Vector3.Zero(), new BABYLON.Vector3(size, 0, 0), new BABYLON.Vector3(size * 0.95, 0.05 * size, 0), 
+      new BABYLON.Vector3(size, 0, 0), new BABYLON.Vector3(size * 0.95, -0.05 * size, 0)
+      ], scene);
+    axisX.color = new BABYLON.Color3(1, 0, 0);
+    var xChar = makeTextPlane("X", "red", size / 10);
+    xChar.position = new BABYLON.Vector3(0.9 * size, -0.05 * size, 0);
+    var axisY = BABYLON.Mesh.CreateLines("axisY", [
+        new BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, size, 0), new BABYLON.Vector3( -0.05 * size, size * 0.95, 0), 
+        new BABYLON.Vector3(0, size, 0), new BABYLON.Vector3( 0.05 * size, size * 0.95, 0)
+        ], scene);
+    axisY.color = new BABYLON.Color3(0, 1, 0);
+    var yChar = makeTextPlane("Y", "green", size / 10);
+    yChar.position = new BABYLON.Vector3(0, 0.9 * size, -0.05 * size);
+    var axisZ = BABYLON.Mesh.CreateLines("axisZ", [
+        new BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, size), new BABYLON.Vector3( 0 , -0.05 * size, size * 0.95),
+        new BABYLON.Vector3(0, 0, size), new BABYLON.Vector3( 0, 0.05 * size, size * 0.95)
+        ], scene);
+    axisZ.color = new BABYLON.Color3(0, 0, 1);
+    var zChar = makeTextPlane("Z", "blue", size / 10);
+    zChar.position = new BABYLON.Vector3(0, 0.05 * size, 0.9 * size);
+};
