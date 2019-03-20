@@ -1,8 +1,11 @@
+const p2 = require('p2');
+const World = require('./WorldManager');
+
 var triggerID = 0;
 var Trigger = function(){
     var self = {
         id:'',
-        position: {'x':0, 'z':0},
+        //position: {'x':0, 'z':0},
     }
     return self;
 }
@@ -10,38 +13,47 @@ var Trigger = function(){
 class Bullet {
     constructor(angle, x, z) {
         var self = Trigger();
+
+        //CLASS PROPERTIES
+
         self.id = triggerID++;
-        self.position.x = x;
-        self.position.z = z;
-        self.lookingAt = angle;
-        self.speed = {'x':0,'z':0};
-        self.speed.x = Math.cos(angle / 180 * Math.PI) * .5;
-        self.speed.z = Math.sin(angle / 180 * Math.PI) * .5;
-        self.timer = 0;
         self.toRemove = false;
+        self.lookingAt = angle;
+        self.initialPosition = [x,z];
+        self.traveledDistance = 0;
+
+        //Add sensor shape
+        self.sensorShape = new p2.Circle();
+        self.sensorShape.sensor = true;
+        self.sensorBody = new p2.Body({position:[x, z]});
+        self.sensorBody.addShape(self.sensorShape);
+        World.addBody(self.sensorBody);
+
+        self.sensorBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * 15;
+        self.sensorBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 15;
+
+        //CLASS METHODS
 
         self.update = function () {
-            if (self.timer++ > 60)
+            if (self.traveledDistance > 15)
                 self.toRemove = true;
             self.updatePosition();
         };
         self.updatePosition = function(){
-            self.position.x += self.speed.x;
-            self.position.z += self.speed.z;
+            self.traveledDistance = World.distanceBetweenTwoPoints(self.initialPosition, self.sensorBody.position);
         }
-
 
         self.getInitPack = function(){
             return{
                 id: self.id,
-                position: self.position,
+                position: {'x':self.sensorBody.position[0], 'z':self.sensorBody.position[1]},
                 lookingAt: self.lookingAt,
             }
         }
         self.getUpdatePack = function(){
             return{
                 id: self.id,
-                position: self.position,
+                position: {'x':self.sensorBody.position[0], 'z':self.sensorBody.position[1]},
                 lookingAt: self.lookingAt,
             }
         }
@@ -50,6 +62,8 @@ class Bullet {
         Bullet.initPack.push(self.getInitPack());
         return self;
     }
+
+    //STATIC METHODS
 
     static getAllBullets() {
         let bullets = [];
@@ -89,6 +103,8 @@ class Bullet {
         Bullet.removePack = [];
     }
 }
+
+//STATIC VARIABLES
 
 Bullet.list = {};
 Bullet.initPack = [];

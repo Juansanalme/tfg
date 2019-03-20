@@ -61,3 +61,4 @@ setInterval(function(){
     }
 
 },1000 * timeStep);
+//timestep^-1 times per second

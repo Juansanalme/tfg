@@ -18,30 +18,41 @@ var Entity = function(){
 class Player {
     constructor(id) {
         var self = Entity();
+
+        //CLASS PROPERTIES
+
         self.id = id;
         self.input = { d:false, a:false, w:false, s:false, mouse:false};
         self.mousePosition = { x: 0, y: 0 };
+        self.shootingCD = true;
+        self.cooldownInterval;
 
         // Create an empty dynamic body
+        // Add a circle shape to the body.
+        // ...and add the body to the world.
         self.circleBody = new p2.Body({
             mass: 5,
             position: [0, 0]
         });
-        
-        // Add a circle shape to the body.
         self.circleShape = new p2.Box({height:1, width:1});
-        self.circleBody.addShape(self.circleShape);
-        
-        // ...and add the body to the world.
-        // If we don't add it to the world, it won't be simulated.
+        self.circleBody.addShape(self.circleShape); 
         World.addBody(self.circleBody);
 
+        //CLASS METHODS
         self.update = function(){
             self.updateSpd();
             self.calculateAngle();
-            if (self.input.mouse) {
+
+            if (self.input.mouse && self.shootingCD) {
+                self.shootingCD = false;
                 self.shootBullet(self.lookingAt);
+
+                self.cooldownInterval = setInterval(() => {
+                    self.shootingCD = true;
+                    clearInterval(self.cooldownInterval);
+                }, 500);//each 500 miliseconds
             }
+            
         };
         self.calculateAngle = function(){
             let x = self.mousePosition.x - _WIDTH/2;
@@ -53,18 +64,25 @@ class Player {
         };
         self.updateSpd = function(){
             if (self.input.d)
-                self.circleBody.velocity[0] = 20;
+                self.circleBody.velocity[0] = 10;
             else if (self.input.a)
-                self.circleBody.velocity[0] = -20;
+                self.circleBody.velocity[0] = -10;
             else
                 self.circleBody.velocity[0] = 0;
 
             if (self.input.w)
-                self.circleBody.velocity[1] = 20;
+                self.circleBody.velocity[1] = 10;
             else if (self.input.s)
-                self.circleBody.velocity[1] = -20;
+                self.circleBody.velocity[1] = -10;
             else
                 self.circleBody.velocity[1] = 0;
+
+            if(self.circleBody.velocity[0] != 0 && self.circleBody.velocity[1] != 0){
+                let signX = Math.sign(self.circleBody.velocity[0]);
+                let signY = Math.sign(self.circleBody.velocity[1]);
+                self.circleBody.velocity[0] = signX * Math.sqrt(50);
+                self.circleBody.velocity[1] = signY * Math.sqrt(50);
+            }
         };
 
         self.getInitPack = function(){
@@ -87,6 +105,8 @@ class Player {
         Player.initPack.push(self.getInitPack());
         return self;
     }
+
+    //STATIC METHODS
 
     static onConnect(socket) {
         let player = new Player(socket.id);
@@ -150,6 +170,8 @@ class Player {
         Player.removePack = [];
     }
 }
+
+//STATIC VARIABLES
 
 Player.list = {};
 Player.initPack = [];

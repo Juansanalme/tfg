@@ -25,7 +25,7 @@ var createScene = function () {
     let scene = new BABYLON.Scene(engine);
 
     // Add a camera to the scene and attach it to the canvas
-    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(0,40,-10), scene);
+    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(0,30,-10), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
     //camera.attachControl(canvas, false);
 
@@ -53,34 +53,84 @@ socket.on('loadWorld', function(worldBlocks, worldMap){
     let width = worldMap.groundWidth;
     let height = worldMap.groundHeight;
 
+    let ground0 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
+    let ground1= BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
+    let ground2 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
+    let ground3 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
+    let ground4 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
+    let myMaterial0 = new BABYLON.StandardMaterial("myMaterial", scene);
+    let myMaterial1 = new BABYLON.StandardMaterial("myMaterial", scene);
+    let myMaterial2 = new BABYLON.StandardMaterial("myMaterial", scene);
+    let myMaterial3 = new BABYLON.StandardMaterial("myMaterial", scene);
+    let myMaterial4 = new BABYLON.StandardMaterial("myMaterial", scene);
+    let waterT = new BABYLON.Texture("./textures/waterTile.jpg", scene);
+    let grassT = new BABYLON.Texture("./textures/grassTile.jpg", scene);
+    let sandT = new BABYLON.Texture("./textures/sandTile.jpg", scene);
+    let plankT = new BABYLON.Texture("./textures/plankTile.jpg", scene);
+    let pathT = new BABYLON.Texture("./textures/pathTile.jpg", scene);
+
+    myMaterial0.diffuseTexture = waterT;
+    myMaterial0.specularTexture = waterT;
+    myMaterial0.emissiveTexture = waterT;
+    myMaterial0.ambientTexture = waterT;
+
+    myMaterial1.diffuseTexture = grassT;
+    myMaterial1.specularTexture = grassT;
+    myMaterial1.emissiveTexture = grassT;
+    myMaterial1.ambientTexture = grassT;
+
+    myMaterial2.diffuseTexture = sandT;
+    myMaterial2.specularTexture = sandT;
+    myMaterial2.emissiveTexture = sandT;
+    myMaterial2.ambientTexture = sandT;
+
+    myMaterial3.diffuseTexture = plankT;
+    myMaterial3.specularTexture = plankT;
+    myMaterial3.emissiveTexture = plankT;
+    myMaterial3.ambientTexture = plankT;
+
+    myMaterial4.diffuseTexture = pathT;
+    myMaterial4.specularTexture = pathT;
+    myMaterial4.emissiveTexture = pathT;
+    myMaterial4.ambientTexture = pathT;
+
+    ground0.material = myMaterial0;
+    ground1.material = myMaterial1;
+    ground2.material = myMaterial2;
+    ground3.material = myMaterial3;
+    ground4.material = myMaterial4;
+
+    ground0.position.x = -16;
+    ground1.position.x = -16;
+    ground2.position.x = -16;
+    ground3.position.x = -16;
+    ground4.position.x = -16;
+
     for(let i in worldMap.mapMatrix){
         for(let j in worldMap.mapMatrix[i]){
             
-            let ground = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
-            let myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
-        
-            let grassTexture;
+            let newInstance;
 
             switch(worldMap.mapMatrix[i][j]){
-                case 0: grassTexture = new BABYLON.Texture("./textures/waterTile.jpg", scene);
+                case 0: 
+                    newInstance = ground0.createInstance();
                     break;
-                case 1: grassTexture = new BABYLON.Texture("./textures/grassTile.jpg", scene);
+                case 1:
+                    newInstance = ground1.createInstance();
                     break;
-                case 2: grassTexture = new BABYLON.Texture("./textures/sandTile.jpg", scene);
+                case 2:
+                    newInstance = ground2.createInstance();
                     break;
-                case 3: grassTexture = new BABYLON.Texture("./textures/plankTile.jpg", scene);
+                case 3:
+                    newInstance = ground3.createInstance();
                     break;
-                case 4: grassTexture = new BABYLON.Texture("./textures/pathTile.jpg", scene);
+                case 4:
+                    newInstance = ground4.createInstance();
                     break;
             }
-            myMaterial.diffuseTexture = grassTexture;
-            myMaterial.specularTexture = grassTexture;
-            myMaterial.emissiveTexture = grassTexture;
-            myMaterial.ambientTexture = grassTexture;
-            ground.material = myMaterial;
-
-            ground.position.x = j * height;
-            ground.position.z = i * width;
+            
+            newInstance.position.x = j * height + height/2;
+            newInstance.position.z = i * width  + width/2;
         }
     }
 
@@ -88,6 +138,7 @@ socket.on('loadWorld', function(worldBlocks, worldMap){
         let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
         block.position.x = element.pX;
         block.position.z = element.pZ;
+        block.position.y = element.h/2;
     });
 
 });
@@ -106,8 +157,8 @@ socket.on('update', function(entitiesPack, triggersPack){
 
 //REMOVE
 socket.on('remove', function(entitiesPack, triggersPack){
-    removePackType(entitiesPack, Entity.list);
-    removePackType(triggersPack, Trigger.list);
+    removePackType(entitiesPack, 0);
+    removePackType(triggersPack, 1);
 });
 
 function initPackType(pack, type){
@@ -146,20 +197,37 @@ function updatePackType(pack, type){
                 v = Trigger.list[element.id];
             break;
         }
+
+        let angle = -1 * element.lookingAt.toFixed(2) * Math.PI / 180; //to radians
+        let axis = new BABYLON.Vector3(0, 1, 0);
+        let quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
+        v.lookingAt = angle;
+
         if (v.body !== undefined) {
             v.body.position.x = element.position.x;
             v.body.position.z = element.position.z;
+            v.body.rotationQuaternion = quaternion;
         }
-        if (v.lookingAt !== undefined) {
-            v.lookingAt = element.lookingAt;
+        if (v.sprite !== undefined) {
+            v.sprite.position.x = element.position.x;
+            v.sprite.position.z = element.position.z;
+            v.sprite.angle = -1 * angle + Math.PI; 
         }
     });
 }
 
-function removePackType(pack, typeList){
+function removePackType(pack, type){
     pack.forEach(element => {
-        typeList[element].body.dispose();
-        delete typeList[element];
+        switch (type){
+            case 0:
+                Entity.list[element].body.dispose();
+                delete Entity.list[element];
+            break;
+            case 1:
+                delete Trigger.list[element].sprite.dispose();
+                delete Trigger.list[element];
+            break;
+        }            
     });
 }
 
