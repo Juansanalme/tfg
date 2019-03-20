@@ -198,7 +198,7 @@ function updatePackType(pack, type){
             break;
         }
 
-        let angle = -1 * element.lookingAt.toFixed(2) * Math.PI / 180; //to radians
+        let angle = -1 * element.lookingAt * Math.PI / 180; //to radians
         let axis = new BABYLON.Vector3(0, 1, 0);
         let quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
         v.lookingAt = angle;

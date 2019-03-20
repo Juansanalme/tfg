@@ -73,9 +73,9 @@ _World.load = function (){
 }
 
 _World.distanceBetweenTwoPoints = function (initial, final){
-    let distX = (final[0].toFixed(2) - initial[0].toFixed(2));
-    let distY = (final[1].toFixed(2) - initial[1].toFixed(2));
-    return Math.sqrt(distX*distX + distY*distY).toFixed(2);
+    let distX = (final.x.toFixed(2) - initial.x.toFixed(2));
+    let distZ = (final.z.toFixed(2) - initial.z.toFixed(2));
+    return Math.sqrt(distX*distX + distZ*distZ).toFixed(2);
 }
 
 module.exports = _World;

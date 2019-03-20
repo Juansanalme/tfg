@@ -2,25 +2,31 @@ const p2 = require('p2');
 const World = require('./WorldManager');
 
 var triggerID = 0;
-var Trigger = function(){
+var Trigger = function(x, z){
     var self = {
-        id:'',
-        //position: {'x':0, 'z':0},
+        id: 0,
+        position: {'x':x, 'z':z},
+        radius: 0,
     }
+
+    self.onEnter = function(){};
+    self.onExit = function(){};
+
     return self;
 }
 
 class Bullet {
-    constructor(angle, x, z) {
-        var self = Trigger();
+    constructor(angle, x, z, enemy) {
+        var self = Trigger(x, z);
 
         //CLASS PROPERTIES
 
         self.id = triggerID++;
         self.toRemove = false;
         self.lookingAt = angle;
-        self.initialPosition = [x,z];
+        self.initialPosition = {'x':x, 'z':z};
         self.traveledDistance = 0;
+        self.isEnemy = enemy;
 
         //Add sensor shape
         self.sensorShape = new p2.Circle();
@@ -34,26 +40,32 @@ class Bullet {
 
         //CLASS METHODS
 
+        self.onEnter = function(){
+            
+        }
+
         self.update = function () {
-            if (self.traveledDistance > 15)
+            if (self.traveledDistance > 17.5)
                 self.toRemove = true;
             self.updatePosition();
         };
         self.updatePosition = function(){
-            self.traveledDistance = World.distanceBetweenTwoPoints(self.initialPosition, self.sensorBody.position);
+            self.position.x = self.sensorBody.position[0];
+            self.position.z = self.sensorBody.position[1];
+            self.traveledDistance = World.distanceBetweenTwoPoints(self.initialPosition, self.position);
         }
 
         self.getInitPack = function(){
             return{
                 id: self.id,
-                position: {'x':self.sensorBody.position[0], 'z':self.sensorBody.position[1]},
+                position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
             }
         }
         self.getUpdatePack = function(){
             return{
                 id: self.id,
-                position: {'x':self.sensorBody.position[0], 'z':self.sensorBody.position[1]},
+                position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
             }
         }

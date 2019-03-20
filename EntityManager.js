@@ -5,44 +5,56 @@ const Bullet = require ('./EventManager');
 const _WIDTH  = 1280,
       _HEIGHT = 720;
 
-var Entity = function(){
+var Entity = function(id, x, z){
     var self = {
-        id:'',
-        //position: {'x':0, 'z':0},
+        id:id,
+        position: {'x':x, 'z':z},
+        radius: 0.5,
         lookingAt: 0,
-        //speed: {'x':0, 'z':0},
+
+        healthPoints: 100,
+        isPlayer: false,
     }
     return self;
 }
 
 class Player {
-    constructor(id) {
-        var self = Entity();
+    constructor(id, x, z) {
+        var self = Entity(id, x, z);
 
         //CLASS PROPERTIES
-
-        self.id = id;
-        self.input = { d:false, a:false, w:false, s:false, mouse:false};
-        self.mousePosition = { x: 0, y: 0 };
+        self.input = {d:false, a:false, w:false, s:false, mouse:false};
+        self.mousePosition = {x:0, y:0};
         self.shootingCD = true;
+        self.shootingTimeCD = 250;
         self.cooldownInterval;
 
-        // Create an empty dynamic body
-        // Add a circle shape to the body.
-        // ...and add the body to the world.
+        //p2 BODY
         self.circleBody = new p2.Body({
             mass: 5,
-            position: [0, 0]
+            position: [x, z]
         });
-        self.circleShape = new p2.Box({height:1, width:1});
+        self.circleShape = new p2.Circle({radius:self.radius});
         self.circleBody.addShape(self.circleShape); 
         World.addBody(self.circleBody);
 
         //CLASS METHODS
         self.update = function(){
-            self.updateSpd();
+            self.updatePosition();
+            self.updateSpeed();
             self.calculateAngle();
+            self.shootingCheck();            
+        };
+        self.updatePosition = function(){
+            self.position.x = self.circleBody.position[0];            
+            self.position.z = self.circleBody.position[1];
+        }
+        
+        self.shootBullet = function(angle){
+            new Bullet(angle, self.position.x, self.position.z, false);
+        };
 
+        self.shootingCheck = function(){
             if (self.input.mouse && self.shootingCD) {
                 self.shootingCD = false;
                 self.shootBullet(self.lookingAt);
@@ -50,19 +62,17 @@ class Player {
                 self.cooldownInterval = setInterval(() => {
                     self.shootingCD = true;
                     clearInterval(self.cooldownInterval);
-                }, 500);//each 500 miliseconds
+                }, self.shootingTimeCD);
             }
-            
-        };
+        }
+
         self.calculateAngle = function(){
             let x = self.mousePosition.x - _WIDTH/2;
             let y = self.mousePosition.y - _HEIGHT/2;
-            self.lookingAt = Math.atan2(-x, -y) / Math.PI * 180 + 90;
+            self.lookingAt = (Math.atan2(-x, -y) / Math.PI * 180 + 90).toFixed(2);
         };
-        self.shootBullet = function(angle){
-            new Bullet(angle, self.circleBody.position[0], self.circleBody.position[1]);
-        };
-        self.updateSpd = function(){
+
+        self.updateSpeed = function(){
             if (self.input.d)
                 self.circleBody.velocity[0] = 10;
             else if (self.input.a)
@@ -88,7 +98,7 @@ class Player {
         self.getInitPack = function(){
             return{
                 id: self.id,
-                position: {'x':self.circleBody.position[0], 'z':self.circleBody.position[1]},
+                position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
             }
         }
@@ -96,7 +106,7 @@ class Player {
         self.getUpdatePack = function(){
             return{
                 id: self.id,
-                position: {'x':self.circleBody.position[0], 'z':self.circleBody.position[1]},
+                position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
             }
         }
@@ -109,7 +119,7 @@ class Player {
     //STATIC METHODS
 
     static onConnect(socket) {
-        let player = new Player(socket.id);
+        let player = new Player(socket.id, 22, 22);
         
         socket.on('keyPress', function (data) {
             if (data.inputId === 'leftClick')
