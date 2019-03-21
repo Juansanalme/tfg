@@ -106,7 +106,9 @@ socket.on('loadWorld', function(worldBlocks, worldMap){
     ground3.position.x = -16;
     ground4.position.x = -16;
 
+    let y = worldMap.mapMatrix.length - 1;
     for(let i in worldMap.mapMatrix){
+
         for(let j in worldMap.mapMatrix[i]){
             
             let newInstance;
@@ -130,15 +132,16 @@ socket.on('loadWorld', function(worldBlocks, worldMap){
             }
             
             newInstance.position.x = j * height + height/2;
-            newInstance.position.z = i * width  + width/2;
+            newInstance.position.z = y * width  + width/2;
         }
+        y--;
     }
 
     worldBlocks.forEach(element => {
-        let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
-        block.position.x = element.pX;
-        block.position.z = element.pZ;
-        block.position.y = element.h/2;
+        //let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
+        //block.position.x = element.pX;
+        //block.position.z = element.pZ;
+        //block.position.y = element.h/2;
     });
 
 });

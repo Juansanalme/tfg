@@ -1,7 +1,7 @@
 //module exports
 const World = require('./WorldManager');
 const Player = require('./EntityManager');
-const Trigger = require('./EventManager');
+const Event = require('./EventManager');
 
 //EXPRESS
 const express = require('express');
@@ -45,10 +45,10 @@ const timeStep = 1 / 60;
 setInterval(function(){
 
     World.step(timeStep);
-    Trigger.Trigger.update(Player.list);
+    Event.Trigger.update(Player.list);
 
     let playerPacks = Player.getFrameUpdateData();
-    let bulletPacks = Trigger.Bullet.getFrameUpdateData();
+    let bulletPacks = Event.Bullet.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
         SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init);

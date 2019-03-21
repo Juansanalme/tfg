@@ -47,11 +47,12 @@ _World.load = function (){
     d = map.groundHeight;
     h = 1;
 
+    let y = map.mapMatrix.length - 1;
     for(let i in map.mapMatrix){
         for(let j in map.mapMatrix[i]){
             if(map.mapMatrix[i][j] == 4){
                 pX = j * d + d/2;
-                pZ = i * w  + w/2;
+                pZ = y * w  + w/2;
 
                 // Create a body. Add a shape to the body. and add the body to the world.
                 let staticBody = new p2.Body({mass:mass, position:[pX,pZ]});
@@ -62,10 +63,8 @@ _World.load = function (){
 
             }
         }
+        y--;
     }
-
-
-
 
     // ENEMIES
 

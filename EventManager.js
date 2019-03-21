@@ -10,7 +10,8 @@ var Trigger = function(x, z){
     }
 
     self.isTouching = function(entity){
-        if(World.distanceBetweenTwoPoints(self.position, entity.position) <= self.radius + entity.radius){
+        if(World.distanceBetweenTwoPoints(self.position, entity.position) <= 
+            self.radius + entity.radius){
             return true;
         }
         return false;
@@ -62,11 +63,13 @@ class Bullet {
         self.onTouch = function(entity){
             if (entity.isPlayer){
                 if (self.isEnemy){//damage to player
-                    
+                    entity.recieveDamage(100);
+                    self.toRemove = true;
                 }
             }else{
                 if (!self.isEnemy){//damage to enemy
-                    
+                    //entity.recieveDamage(100);
+                    self.toRemove = true;
                 }
             }
         }
@@ -118,15 +121,20 @@ class Bullet {
             let bullet = Bullet.list[i];
             bullet.update();
             if (bullet.toRemove) {
-                delete Trigger.list[i];
-                delete Bullet.list[i];
-                Bullet.removePack.push(bullet.id);
+                Bullet.removeFromGame(bullet);
             }
             else {
                 pack.push(bullet.getUpdatePack());
             }
         }
         return pack;
+    }
+
+    static removeFromGame(bullet){
+        World.removeBody(bullet.sensorBody);
+        delete Trigger.list[bullet.id];
+        delete Bullet.list[bullet.id];
+        Bullet.removePack.push(bullet.id);
     }
 
     static getFrameUpdateData() {
@@ -153,5 +161,5 @@ Bullet.removePack = [];
 
 // EXPORTS
 
-const _Trigger = {Trigger:Trigger, Bullet:Bullet}
-module.exports = _Trigger;
+const _Event = {Trigger:Trigger, Bullet:Bullet}
+module.exports = _Event;

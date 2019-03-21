@@ -1,6 +1,6 @@
 const p2 = require('p2');
 const World = require('./WorldManager');
-const Trigger = require ('./EventManager');
+const Event = require ('./EventManager');
 
 const _WIDTH  = 1280,
       _HEIGHT = 720;
@@ -22,6 +22,7 @@ var Entity = function(id, x, z){
 class Player {
     constructor(id, x, z) {
         var self = Entity(id, x, z);
+        self.isPlayer = true;
 
         //CLASS PROPERTIES
         self.input = {d:false, a:false, w:false, s:false, mouse:false};
@@ -29,7 +30,6 @@ class Player {
         self.shootingCD = true;
         self.shootingTimeCD = 250;
         self.cooldownInterval;
-        self.isPlayer = true;
 
         //p2 BODY
         self.circleBody = new p2.Body({
@@ -53,7 +53,7 @@ class Player {
         }
         
         self.shootBullet = function(angle){
-            new Trigger.Bullet(angle, self.position.x, self.position.z, false);
+            new Event.Bullet(angle, self.position.x, self.position.z, false);
         };
 
         self.shootingCheck = function(){
@@ -73,6 +73,10 @@ class Player {
             let y = self.mousePosition.y - _HEIGHT/2;
             self.lookingAt = (Math.atan2(-x, -y) / Math.PI * 180 + 90).toFixed(2);
         };
+
+        self.recieveDamage = function(){
+            console.log(x);
+        }
 
         self.updateSpeed = function(){
             if (self.input.d)
@@ -141,11 +145,12 @@ class Player {
         });
 
         socket.emit('loadWorld', World.blocks, World.map);
-        socket.emit('init', Player.getAllPlayers(), Trigger.Bullet.getAllBullets());
+        socket.emit('init', Player.getAllPlayers(), Event.Bullet.getAllBullets());
         socket.emit('sendSelfID', socket.id);
     }
 
     static onDisconnect(socket) {
+        World.removeBody(Player.list[socket.id].circleBody);
         delete Player.list[socket.id];
         Player.removePack.push(socket.id);
     }
