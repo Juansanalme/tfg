@@ -1,6 +1,6 @@
 const p2 = require('p2');
 const World = require('./WorldManager');
-const Bullet = require ('./EventManager');
+const Trigger = require ('./EventManager');
 
 const _WIDTH  = 1280,
       _HEIGHT = 720;
@@ -12,7 +12,8 @@ var Entity = function(id, x, z){
         radius: 0.5,
         lookingAt: 0,
 
-        healthPoints: 100,
+        maxHP: 100,
+        currentHP: 100,
         isPlayer: false,
     }
     return self;
@@ -28,6 +29,7 @@ class Player {
         self.shootingCD = true;
         self.shootingTimeCD = 250;
         self.cooldownInterval;
+        self.isPlayer = true;
 
         //p2 BODY
         self.circleBody = new p2.Body({
@@ -51,7 +53,7 @@ class Player {
         }
         
         self.shootBullet = function(angle){
-            new Bullet(angle, self.position.x, self.position.z, false);
+            new Trigger.Bullet(angle, self.position.x, self.position.z, false);
         };
 
         self.shootingCheck = function(){
@@ -139,7 +141,7 @@ class Player {
         });
 
         socket.emit('loadWorld', World.blocks, World.map);
-        socket.emit('init', Player.getAllPlayers(), Bullet.getAllBullets());
+        socket.emit('init', Player.getAllPlayers(), Trigger.Bullet.getAllBullets());
         socket.emit('sendSelfID', socket.id);
     }
 
@@ -186,5 +188,7 @@ class Player {
 Player.list = {};
 Player.initPack = [];
 Player.removePack = [];
+
+//EXPORTS
 
 module.exports = Player;

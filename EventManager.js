@@ -9,11 +9,30 @@ var Trigger = function(x, z){
         radius: 0,
     }
 
-    self.onEnter = function(){};
-    self.onExit = function(){};
+    self.isTouching = function(entity){
+        if(World.distanceBetweenTwoPoints(self.position, entity.position) <= self.radius + entity.radius){
+            return true;
+        }
+        return false;
+    };
+    self.onTouch = function(entity){};
 
     return self;
 }
+
+Trigger.update = function(entities){
+    for(let t in Trigger.list){
+        let trigger = Trigger.list[t];
+        for(let e in entities){
+            let entity = entities[e];
+            if(trigger.isTouching(entity)){
+                trigger.onTouch(entity);
+            }
+        };
+    };
+}
+
+Trigger.list = {};
 
 class Bullet {
     constructor(angle, x, z, enemy) {
@@ -40,8 +59,16 @@ class Bullet {
 
         //CLASS METHODS
 
-        self.onEnter = function(){
-            
+        self.onTouch = function(entity){
+            if (entity.isPlayer){
+                if (self.isEnemy){//damage to player
+                    
+                }
+            }else{
+                if (!self.isEnemy){//damage to enemy
+                    
+                }
+            }
         }
 
         self.update = function () {
@@ -72,6 +99,7 @@ class Bullet {
 
         Bullet.list[self.id] = self;
         Bullet.initPack.push(self.getInitPack());
+        Trigger.list[self.id] = self;
         return self;
     }
 
@@ -90,6 +118,7 @@ class Bullet {
             let bullet = Bullet.list[i];
             bullet.update();
             if (bullet.toRemove) {
+                delete Trigger.list[i];
                 delete Bullet.list[i];
                 Bullet.removePack.push(bullet.id);
             }
@@ -122,4 +151,7 @@ Bullet.list = {};
 Bullet.initPack = [];
 Bullet.removePack = [];
 
-module.exports = Bullet;
+// EXPORTS
+
+const _Trigger = {Trigger:Trigger, Bullet:Bullet}
+module.exports = _Trigger;

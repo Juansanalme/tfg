@@ -1,7 +1,7 @@
 class Entity {
     constructor(pack, scene){
         this.id = pack.id;
-        this.lookingAt = pack.lookingAt.toFixed(2);
+        this.lookingAt = pack.lookingAt;
 
         this.body = BABYLON.MeshBuilder.CreateBox("Sphere", {width:1, height:1}, scene);
         this.body.position.x = pack.position.x;

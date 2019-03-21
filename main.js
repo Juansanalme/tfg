@@ -45,9 +45,10 @@ const timeStep = 1 / 60;
 setInterval(function(){
 
     World.step(timeStep);
+    Trigger.Trigger.update(Player.list);
 
     let playerPacks = Player.getFrameUpdateData();
-    let bulletPacks = Trigger.getFrameUpdateData();
+    let bulletPacks = Trigger.Bullet.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
         SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init);
