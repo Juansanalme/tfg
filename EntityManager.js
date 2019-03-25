@@ -1,13 +1,11 @@
 const p2 = require('p2');
 const World = require('./WorldManager');
-const Event = require ('./EventManager');
 
-const _WIDTH  = 1280,
-      _HEIGHT = 720;
+var EntityID = 1;
 
 var Entity = function(id, x, z){
     var self = {
-        id:id,
+        id: id,
         position: {'x':x, 'z':z},
         radius: 0.5,
         lookingAt: 0,
@@ -16,16 +14,21 @@ var Entity = function(id, x, z){
         currentHP: 100,
         isPlayer: false,
     }
+    EntityID++;
     return self;
 }
+Entity.getID = function(){
+    return EntityID;
+}
 
-class Player {
-    constructor(id, x, z) {
+// ENEMY
+class Enemy {
+    constructor(id, x, z, World) {
         var self = Entity(id, x, z);
-        self.isPlayer = true;
+        self.isPlayer = false;
+        self.toRemove = false;
 
         //CLASS PROPERTIES
-        self.input = {d:false, a:false, w:false, s:false, mouse:false};
         self.mousePosition = {x:0, y:0};
         self.shootingCD = true;
         self.shootingTimeCD = 250;
@@ -57,7 +60,7 @@ class Player {
         };
 
         self.shootingCheck = function(){
-            if (self.input.mouse && self.shootingCD) {
+            if (self.shootingCD) {
                 self.shootingCD = false;
                 self.shootBullet(self.lookingAt);
 
@@ -69,36 +72,20 @@ class Player {
         }
 
         self.calculateAngle = function(){
-            let x = self.mousePosition.x - _WIDTH/2;
-            let y = self.mousePosition.y - _HEIGHT/2;
+            let x = 0;
+            let y = 0;
             self.lookingAt = (Math.atan2(-x, -y) / Math.PI * 180 + 90).toFixed(2);
         };
 
-        self.recieveDamage = function(){
-            console.log(x);
+        self.recieveDamage = function(damage){
+            self.currentHP -= damage;
+            if (currentHP <= 0){
+                self.toRemove = true;
+            }
         }
 
         self.updateSpeed = function(){
-            if (self.input.d)
-                self.circleBody.velocity[0] = 10;
-            else if (self.input.a)
-                self.circleBody.velocity[0] = -10;
-            else
-                self.circleBody.velocity[0] = 0;
 
-            if (self.input.w)
-                self.circleBody.velocity[1] = 10;
-            else if (self.input.s)
-                self.circleBody.velocity[1] = -10;
-            else
-                self.circleBody.velocity[1] = 0;
-
-            if(self.circleBody.velocity[0] != 0 && self.circleBody.velocity[1] != 0){
-                let signX = Math.sign(self.circleBody.velocity[0]);
-                let signY = Math.sign(self.circleBody.velocity[1]);
-                self.circleBody.velocity[0] = signX * Math.sqrt(50);
-                self.circleBody.velocity[1] = signY * Math.sqrt(50);
-            }
         };
 
         self.getInitPack = function(){
@@ -117,83 +104,63 @@ class Player {
             }
         }
 
-        Player.list[self.id] = self;
-        Player.initPack.push(self.getInitPack());
+        Enemy.list[self.id] = self;
+        Enemy.initPack.push(self.getInitPack());
         return self;
     }
 
     //STATIC METHODS
 
-    static onConnect(socket) {
-        let player = new Player(socket.id, 22, 22);
-        
-        socket.on('keyPress', function (data) {
-            if (data.inputId === 'leftClick')
-                player.input.mouse = data.state;
-            else if (data.inputId === 'left')
-                player.input.a = data.state;
-            else if (data.inputId === 'down')
-                player.input.s = data.state;
-            else if (data.inputId === 'right')
-                player.input.d = data.state;
-            else if (data.inputId === 'up')
-                player.input.w = data.state;
-        });
-        socket.on('mouseMove', function (data) {
-            player.mousePosition.x = data.x;
-            player.mousePosition.y = data.y;
-        });
-
-        socket.emit('loadWorld', World.blocks, World.map);
-        socket.emit('init', Player.getAllPlayers(), Event.Bullet.getAllBullets());
-        socket.emit('sendSelfID', socket.id);
-    }
-
-    static onDisconnect(socket) {
-        World.removeBody(Player.list[socket.id].circleBody);
-        delete Player.list[socket.id];
-        Player.removePack.push(socket.id);
-    }
-
-    static getAllPlayers() {
-        let players = [];
-        for (let i in Player.list)
-            players.push(Player.list[i].getInitPack());
-        return players;
+    static getAllEnemies() {
+        let enemies = [];
+        for (let i in Enemy.list)
+            enemies.push(Enemy.list[i].getInitPack());
+        return enemies;
     }
 
     static getUpdate() {
         let pack = [];
-        for (let i in Player.list) {
-            let player = Player.list[i];
-            player.update();
-            pack.push(player.getUpdatePack());
+        for (let i in Enemy.list) {
+            let enemy = Enemy.list[i];
+            enemy.update();
+            if (enemy.toRemove) {
+                Enemy.removeFromGame(enemy);
+            }
+            else {
+                pack.push(enemy.getUpdatePack());
+            }
         }
         return pack;
     }
 
+    static removeFromGame(enemy){
+        enemy.circleBody.removeShape(enemy.circleShape);
+        World.removeBody(enemy.circleBody);
+        delete Enemy.list[enemy.id];
+        Enemy.removePack.push(enemy.id);
+    }
+
     static getFrameUpdateData() {
         let packs = {
-            init:   Player.initPack,
-            remove: Player.removePack,           
-            update: Player.getUpdate(),
+            init:   Enemy.initPack,
+            remove: Enemy.removePack,           
+            update: Enemy.getUpdate(),
         }
-        Player.emptyPacks();
+        Enemy.emptyPacks();
         return packs;
     }
 
     static emptyPacks() {
-        Player.initPack = [];
-        Player.removePack = [];
+        Enemy.initPack = [];
+        Enemy.removePack = [];
     }
 }
-
 //STATIC VARIABLES
+Enemy.list = {};
+Enemy.initPack = [];
+Enemy.removePack = [];
 
-Player.list = {};
-Player.initPack = [];
-Player.removePack = [];
 
 //EXPORTS
-
-module.exports = Player;
+var _Entity = {Enemy:Enemy, Entity:Entity}
+module.exports = _Entity;

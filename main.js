@@ -1,7 +1,8 @@
 //module exports
 const World = require('./WorldManager');
-const Player = require('./EntityManager');
 const Event = require('./EventManager');
+const Entity = require('./EntityManager');
+const Player = require('./Player');
 
 //EXPRESS
 const express = require('express');
@@ -22,20 +23,20 @@ console.log('Loading World...');
 World.load();
 
 //SOCKET.IO
-var entityID = 1;
 var SOCKET_LIST = {};
 
 const io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
-    console.log('socket connection, id = ' + entityID);
+    console.log('socket connection, id = ' + Entity.Entity.getID());
     
-    socket.id = entityID++;
+    //socketID = Entity.Entity.getID();
+    socket.id = Entity.Entity.getID();
     SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket);
+    Player.onConnect(socket, World);
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);
-        Player.onDisconnect(socket);
+        Player.onDisconnect(socket, World);
         SOCKET_LIST[socket.id].toDelete = true;
     });
 });
@@ -45,7 +46,7 @@ const timeStep = 1 / 60;
 setInterval(function(){
 
     World.step(timeStep);
-    Event.Trigger.update(Player.list);
+    Event.Trigger.update(Player.list, World.blocks);
 
     let playerPacks = Player.getFrameUpdateData();
     let bulletPacks = Event.Bullet.getFrameUpdateData();

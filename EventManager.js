@@ -7,6 +7,7 @@ var Trigger = function(x, z){
         id: 0,
         position: {'x':x, 'z':z},
         radius: 0,
+        isBullet: false
     }
 
     self.isTouching = function(entity){
@@ -21,8 +22,10 @@ var Trigger = function(x, z){
     return self;
 }
 
-Trigger.update = function(entities){
+Trigger.update = function(entities, blocks){
+    //Check all triggers
     for(let t in Trigger.list){
+        //Triggers to entities
         let trigger = Trigger.list[t];
         for(let e in entities){
             let entity = entities[e];
@@ -30,6 +33,14 @@ Trigger.update = function(entities){
                 trigger.onTouch(entity);
             }
         };
+        //Bullet to blocks
+        if(trigger.isBullet){
+            blocks.forEach(block => {
+                if(trigger.isTouchingBlock(block)){
+                    trigger.onTouchBlock();
+                }           
+            });
+        }
     };
 }
 
@@ -40,13 +51,16 @@ class Bullet {
         var self = Trigger(x, z);
 
         //CLASS PROPERTIES
-
         self.id = triggerID++;
         self.toRemove = false;
         self.lookingAt = angle;
         self.initialPosition = {'x':x, 'z':z};
         self.traveledDistance = 0;
         self.isEnemy = enemy;
+        self.isBullet = true;
+        //Bullet skills
+        self.waveBeam = false;
+        self.plasmaBeam = false;
 
         //Add sensor shape
         self.sensorShape = new p2.Circle();
@@ -59,19 +73,35 @@ class Bullet {
         self.sensorBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 15;
 
         //CLASS METHODS
-
         self.onTouch = function(entity){
             if (entity.isPlayer){
                 if (self.isEnemy){//damage to player
-                    entity.recieveDamage(100);
-                    self.toRemove = true;
+                    entity.recieveDamage(50);
+                    self.toRemove = !self.plasmaBeam;
                 }
             }else{
                 if (!self.isEnemy){//damage to enemy
                     //entity.recieveDamage(100);
-                    self.toRemove = true;
+                    self.toRemove = !self.plasmaBeam;
                 }
             }
+        }
+
+        self.isTouchingBlock = function(block){
+            let x = self.position.x;
+            let z = self.position.z;
+            let blockz1 = block.pZ + block.d/2;
+            let blockz2 = block.pZ - block.d/2
+            let blockx1 = block.pX + block.d/2;
+            let blockx2 = block.pX - block.d/2
+            if(x >= blockx2 && x <= blockx1 && z >= blockz2 && z <= blockz1){
+                return true;
+            }
+            return false;
+        }
+
+        self.onTouchBlock = function(){
+            self.toRemove = !self.waveBeam;
         }
 
         self.update = function () {
@@ -107,7 +137,6 @@ class Bullet {
     }
 
     //STATIC METHODS
-
     static getAllBullets() {
         let bullets = [];
         for (let i in Bullet.list)
@@ -131,6 +160,7 @@ class Bullet {
     }
 
     static removeFromGame(bullet){
+        bullet.sensorBody.removeShape(bullet.sensorShape);
         World.removeBody(bullet.sensorBody);
         delete Trigger.list[bullet.id];
         delete Bullet.list[bullet.id];
@@ -154,12 +184,10 @@ class Bullet {
 }
 
 //STATIC VARIABLES
-
 Bullet.list = {};
 Bullet.initPack = [];
 Bullet.removePack = [];
 
-// EXPORTS
-
+//EXPORTS
 const _Event = {Trigger:Trigger, Bullet:Bullet}
 module.exports = _Event;
