@@ -6,7 +6,7 @@ const _WIDTH  = 1280,
       _HEIGHT = 720;
 
 class Player {
-    constructor(id, x, z, World) {
+    constructor(id, x, z, world) {
         var self = Entity.Entity(id, x, z);
         self.isPlayer = true;
 
@@ -24,7 +24,7 @@ class Player {
         });
         self.circleShape = new p2.Circle({radius:self.radius});
         self.circleBody.addShape(self.circleShape); 
-        World.addBody(self.circleBody);
+        world.addBody(self.circleBody);
 
         //CLASS METHODS
         self.update = function(){
@@ -39,7 +39,7 @@ class Player {
         }
         
         self.shootBullet = function(angle){
-            new Event.Bullet(angle, self.position.x, self.position.z, false);
+            new Event.Bullet(angle, self.position.x, self.position.z, false, world);
         };
 
         self.shootingCheck = function(){
@@ -110,7 +110,7 @@ class Player {
 
     //STATIC METHODS
 
-    static onConnect(socket, World) {
+    static onConnect(socket, World, enemies) {
         let player = new Player(socket.id, 22, 22, World);
         
         socket.on('keyPress', function (data) {
@@ -131,7 +131,7 @@ class Player {
         });
 
         socket.emit('loadWorld', World.blocks, World.map);
-        socket.emit('init', Player.getAllPlayers(), Event.Bullet.getAllBullets());
+        socket.emit('init', Player.getAllPlayers(), Event.Bullet.getAllBullets(), enemies);
         socket.emit('sendSelfID', socket.id);
     }
 

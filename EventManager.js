@@ -1,5 +1,5 @@
 const p2 = require('p2');
-const World = require('./WorldManager');
+const _world = require('./WorldManager');
 
 var triggerID = 0;
 var Trigger = function(x, z){
@@ -11,7 +11,7 @@ var Trigger = function(x, z){
     }
 
     self.isTouching = function(entity){
-        if(World.distanceBetweenTwoPoints(self.position, entity.position) <= 
+        if(_world.distanceBetweenTwoPoints(self.position, entity.position) <=
             self.radius + entity.radius){
             return true;
         }
@@ -23,17 +23,23 @@ var Trigger = function(x, z){
 }
 
 Trigger.update = function(entities, blocks){
-    //Check all triggers
+
     for(let t in Trigger.list){
         //Triggers to entities
         let trigger = Trigger.list[t];
-        for(let e in entities){
-            let entity = entities[e];
+        for(let e in entities.P){
+            let entity = entities.P[e];
             if(trigger.isTouching(entity)){
                 trigger.onTouch(entity);
             }
         };
-        //Bullet to blocks
+        for(let e in entities.E){
+            let entity = entities.E[e];
+            if(trigger.isTouching(entity)){
+                trigger.onTouch(entity);
+            }
+        };
+        //Bullets to blocks
         if(trigger.isBullet){
             blocks.forEach(block => {
                 if(trigger.isTouchingBlock(block)){
@@ -47,7 +53,7 @@ Trigger.update = function(entities, blocks){
 Trigger.list = {};
 
 class Bullet {
-    constructor(angle, x, z, enemy) {
+    constructor(angle, x, z, enemy, world) {
         var self = Trigger(x, z);
 
         //CLASS PROPERTIES
@@ -58,16 +64,13 @@ class Bullet {
         self.traveledDistance = 0;
         self.isEnemy = enemy;
         self.isBullet = true;
-        //Bullet skills
-        self.waveBeam = false;
-        self.plasmaBeam = false;
 
         //Add sensor shape
         self.sensorShape = new p2.Circle();
         self.sensorShape.sensor = true;
         self.sensorBody = new p2.Body({position:[x, z]});
         self.sensorBody.addShape(self.sensorShape);
-        World.addBody(self.sensorBody);
+        world.addBody(self.sensorBody);
 
         self.sensorBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * 15;
         self.sensorBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 15;
@@ -77,12 +80,12 @@ class Bullet {
             if (entity.isPlayer){
                 if (self.isEnemy){//damage to player
                     entity.recieveDamage(50);
-                    self.toRemove = !self.plasmaBeam;
+                    self.toRemove = true;
                 }
             }else{
                 if (!self.isEnemy){//damage to enemy
-                    //entity.recieveDamage(100);
-                    self.toRemove = !self.plasmaBeam;
+                    entity.recieveDamage(50);
+                    self.toRemove = true;
                 }
             }
         }
@@ -101,7 +104,7 @@ class Bullet {
         }
 
         self.onTouchBlock = function(){
-            self.toRemove = !self.waveBeam;
+            self.toRemove = true;
         }
 
         self.update = function () {
@@ -112,7 +115,7 @@ class Bullet {
         self.updatePosition = function(){
             self.position.x = self.sensorBody.position[0];
             self.position.z = self.sensorBody.position[1];
-            self.traveledDistance = World.distanceBetweenTwoPoints(self.initialPosition, self.position);
+            self.traveledDistance = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
         }
 
         self.getInitPack = function(){
@@ -128,6 +131,14 @@ class Bullet {
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
             }
+        }
+
+        self.removeFromGame = function(){
+            self.sensorBody.removeShape(self.sensorShape);
+            world.removeBody(self.sensorBody);
+            delete Trigger.list[self.id];
+            delete Bullet.list[self.id];
+            Bullet.removePack.push(self.id);
         }
 
         Bullet.list[self.id] = self;
@@ -150,21 +161,13 @@ class Bullet {
             let bullet = Bullet.list[i];
             bullet.update();
             if (bullet.toRemove) {
-                Bullet.removeFromGame(bullet);
+                bullet.removeFromGame();
             }
             else {
                 pack.push(bullet.getUpdatePack());
             }
         }
         return pack;
-    }
-
-    static removeFromGame(bullet){
-        bullet.sensorBody.removeShape(bullet.sensorShape);
-        World.removeBody(bullet.sensorBody);
-        delete Trigger.list[bullet.id];
-        delete Bullet.list[bullet.id];
-        Bullet.removePack.push(bullet.id);
     }
 
     static getFrameUpdateData() {

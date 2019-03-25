@@ -1,5 +1,6 @@
 const p2 = require('p2');
-const World = require('./WorldManager');
+//const Event = require ('./EventManager');
+//const _world = require('./WorldManager');
 
 var EntityID = 1;
 
@@ -23,7 +24,7 @@ Entity.getID = function(){
 
 // ENEMY
 class Enemy {
-    constructor(id, x, z, World) {
+    constructor(id, x, z, world) {
         var self = Entity(id, x, z);
         self.isPlayer = false;
         self.toRemove = false;
@@ -36,12 +37,12 @@ class Enemy {
 
         //p2 BODY
         self.circleBody = new p2.Body({
-            mass: 5,
+            mass: 15,
             position: [x, z]
         });
         self.circleShape = new p2.Circle({radius:self.radius});
         self.circleBody.addShape(self.circleShape); 
-        World.addBody(self.circleBody);
+        world.addBody(self.circleBody);
 
         //CLASS METHODS
         self.update = function(){
@@ -56,7 +57,7 @@ class Enemy {
         }
         
         self.shootBullet = function(angle){
-            new Event.Bullet(angle, self.position.x, self.position.z, false);
+            //new Event.Bullet(angle, self.position.x, self.position.z, false, world);
         };
 
         self.shootingCheck = function(){
@@ -79,7 +80,7 @@ class Enemy {
 
         self.recieveDamage = function(damage){
             self.currentHP -= damage;
-            if (currentHP <= 0){
+            if (self.currentHP <= 0){
                 self.toRemove = true;
             }
         }
@@ -104,6 +105,13 @@ class Enemy {
             }
         }
 
+        self.removeFromGame = function(){
+            self.circleBody.removeShape(self.circleShape);
+            world.removeBody(self.circleBody);
+            delete Enemy.list[self.id];
+            Enemy.removePack.push(self.id);
+        }
+
         Enemy.list[self.id] = self;
         Enemy.initPack.push(self.getInitPack());
         return self;
@@ -124,20 +132,13 @@ class Enemy {
             let enemy = Enemy.list[i];
             enemy.update();
             if (enemy.toRemove) {
-                Enemy.removeFromGame(enemy);
+                enemy.removeFromGame();
             }
             else {
                 pack.push(enemy.getUpdatePack());
             }
         }
         return pack;
-    }
-
-    static removeFromGame(enemy){
-        enemy.circleBody.removeShape(enemy.circleShape);
-        World.removeBody(enemy.circleBody);
-        delete Enemy.list[enemy.id];
-        Enemy.removePack.push(enemy.id);
     }
 
     static getFrameUpdateData() {

@@ -36,8 +36,8 @@ const blocks = {
 }
 
 const enemies = [
-    {x:10,z:10},
-    {x:10,z:20},
+    {x:0,z:0},
+    {x:16,z:16},
 ]
 
 _World.load = function (){
@@ -74,7 +74,7 @@ _World.load = function (){
     // ENEMIES
     enemies.forEach(enemy => {
         let id = Entity.Entity.getID();
-        new Entity.Enemy(id, enemy.x, enemy.y, _World);
+        new Entity.Enemy(id, enemy.x, enemy.z, _World);
     });
 
     console.log('World Loaded');

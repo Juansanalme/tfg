@@ -32,7 +32,7 @@ io.sockets.on('connection', function(socket){
     //socketID = Entity.Entity.getID();
     socket.id = Entity.Entity.getID();
     SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket, World);
+    Player.onConnect(socket, World, Entity.Enemy.getAllEnemies());
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);
@@ -46,15 +46,18 @@ const timeStep = 1 / 60;
 setInterval(function(){
 
     World.step(timeStep);
-    Event.Trigger.update(Player.list, World.blocks);
+
+    let playersANDenemies = {P:Player.list, E:Entity.Enemy.list};
+    Event.Trigger.update(playersANDenemies, World.blocks);
 
     let playerPacks = Player.getFrameUpdateData();
     let bulletPacks = Event.Bullet.getFrameUpdateData();
+    let enemyPacks  = Entity.Enemy.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
-        SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init);
-        SOCKET_LIST[i].emit('update', playerPacks.update, bulletPacks.update);
-        SOCKET_LIST[i].emit('remove', playerPacks.remove, bulletPacks.remove);
+        SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init,   enemyPacks.init);
+        SOCKET_LIST[i].emit('update', playerPacks.update, bulletPacks.update, enemyPacks.update);
+        SOCKET_LIST[i].emit('remove', playerPacks.remove, bulletPacks.remove, enemyPacks.remove);
 
         if (SOCKET_LIST[i] && SOCKET_LIST[i].toDelete){
             delete SOCKET_LIST[i];
