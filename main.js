@@ -1,7 +1,8 @@
 //module exports
 const World = require('./WorldManager');
-const Event = require('./EventManager');
 const Entity = require('./EntityManager');
+const Event = require('./EventManager');
+const Enemy = require('./Enemy');
 const Player = require('./Player');
 
 //EXPRESS
@@ -27,12 +28,11 @@ var SOCKET_LIST = {};
 
 const io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
-    console.log('socket connection, id = ' + Entity.Entity.getID());
+    console.log('socket connection, id = ' + Entity.getID());
     
-    //socketID = Entity.Entity.getID();
-    socket.id = Entity.Entity.getID();
+    socket.id = Entity.getID();
     SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket, World, Entity.Enemy.getAllEnemies());
+    Player.onConnect(socket, World, Enemy.getAllEnemies());
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);
@@ -47,12 +47,12 @@ setInterval(function(){
 
     World.step(timeStep);
 
-    let playersANDenemies = {P:Player.list, E:Entity.Enemy.list};
+    let playersANDenemies = {P:Player.list, E:Enemy.list};
     Event.Trigger.update(playersANDenemies, World.blocks);
 
     let playerPacks = Player.getFrameUpdateData();
     let bulletPacks = Event.Bullet.getFrameUpdateData();
-    let enemyPacks  = Entity.Enemy.getFrameUpdateData();
+    let enemyPacks  = Enemy.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
         SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init,   enemyPacks.init);

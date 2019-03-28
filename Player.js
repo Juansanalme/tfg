@@ -7,7 +7,7 @@ const _WIDTH  = 1280,
 
 class Player {
     constructor(id, x, z, world) {
-        var self = Entity.Entity(id, x, z);
+        var self = Entity(id, x, z);
         self.isPlayer = true;
 
         //CLASS PROPERTIES
@@ -60,8 +60,8 @@ class Player {
             self.lookingAt = (Math.atan2(-x, -y) / Math.PI * 180 + 90).toFixed(2);
         };
 
-        self.recieveDamage = function(){
-            console.log(x);
+        self.recieveDamage = function(damage){
+            
         }
 
         self.updateSpeed = function(){

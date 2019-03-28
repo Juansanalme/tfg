@@ -1,8 +1,7 @@
 const p2 = require('p2');
-const _world = require('./WorldManager');
 
 var triggerID = 0;
-var Trigger = function(x, z){
+var Trigger = function(x, z, world){
     var self = {
         id: 0,
         position: {'x':x, 'z':z},
@@ -11,7 +10,7 @@ var Trigger = function(x, z){
     }
 
     self.isTouching = function(entity){
-        if(_world.distanceBetweenTwoPoints(self.position, entity.position) <=
+        if(world.distanceBetweenTwoPoints(self.position, entity.position) <=
             self.radius + entity.radius){
             return true;
         }
@@ -54,7 +53,7 @@ Trigger.list = {};
 
 class Bullet {
     constructor(angle, x, z, enemy, world) {
-        var self = Trigger(x, z);
+        var self = Trigger(x, z, world);
 
         //CLASS PROPERTIES
         self.id = triggerID++;
@@ -84,7 +83,7 @@ class Bullet {
                 }
             }else{
                 if (!self.isEnemy){//damage to enemy
-                    entity.recieveDamage(50);
+                    entity.recieveDamage(25);
                     self.toRemove = true;
                 }
             }

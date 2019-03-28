@@ -1,5 +1,6 @@
 const p2 = require('p2');
 const Entity = require('./EntityManager');
+const Enemy = require('./Enemy');
 
 var _World = new p2.World({
     gravity:[0, 0]
@@ -36,7 +37,6 @@ const blocks = {
 }
 
 const enemies = [
-    {x:0,z:0},
     {x:16,z:16},
 ]
 
@@ -56,6 +56,7 @@ _World.load = function (){
     for(let i in map.mapMatrix){
         for(let j in map.mapMatrix[i]){
             if(map.mapMatrix[i][j] == 4){
+                //Blocks
                 pX = j * d + d/2;
                 pZ = y * w  + w/2;
 
@@ -73,8 +74,8 @@ _World.load = function (){
 
     // ENEMIES
     enemies.forEach(enemy => {
-        let id = Entity.Entity.getID();
-        new Entity.Enemy(id, enemy.x, enemy.z, _World);
+        let id = Entity.getID();
+        new Enemy(id, enemy.x, enemy.z, _World);
     });
 
     console.log('World Loaded');
