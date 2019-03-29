@@ -138,10 +138,10 @@ socket.on('loadWorld', function(worldBlocks, worldMap){
     }
 
     worldBlocks.forEach(element => {
-        //let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
-        //block.position.x = element.pX;
-        //block.position.z = element.pZ;
-        //block.position.y = element.h/2;
+        let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
+        block.position.x = element.pX;
+        block.position.z = element.pZ;
+        block.position.y = element.h/2;
     });
 
 });

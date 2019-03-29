@@ -10,7 +10,7 @@ class Enemy {
 
         //CLASS PROPERTIES
         self.shootingCD = true;
-        self.shootingTimeCD = 250;
+        self.shootingTimeCD = 500;
         self.cooldownInterval;
 
         //p2 BODY
@@ -27,7 +27,7 @@ class Enemy {
             self.updatePosition();
             self.updateSpeed();
             self.calculateAngle();
-            self.shootingCheck();            
+            //self.shootingCheck();            
         };
         self.updatePosition = function(){
             self.position.x = self.circleBody.position[0];            
@@ -85,9 +85,11 @@ class Enemy {
 
         self.removeFromGame = function(){
             self.circleBody.removeShape(self.circleShape);
-            world.removeBody(self.circleBody);
-            delete Enemy.list[self.id];
+            world.removeBody(self.circleBody);            
             Enemy.removePack.push(self.id);
+            
+            delete Entity.list[self.id];
+            delete Enemy.list[self.id];
         }
 
         Enemy.list[self.id] = self;

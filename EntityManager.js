@@ -10,13 +10,17 @@ var Entity = function(id, x, z){
         currentHP: 100,
         isPlayer: false,
     }
+
+
+
+    Entity.list[id] = self;
     EntityID++;
     return self;
 }
 Entity.getID = function(){
     return EntityID;
 }
-
+Entity.list = {};
 
 //EXPORTS
 module.exports = Entity;

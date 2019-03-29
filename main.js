@@ -46,9 +46,7 @@ const timeStep = 1 / 60;
 setInterval(function(){
 
     World.step(timeStep);
-
-    let playersANDenemies = {P:Player.list, E:Enemy.list};
-    Event.Trigger.update(playersANDenemies, World.blocks);
+    Event.Trigger.update(Entity.list, World.blocks);
 
     let playerPacks = Player.getFrameUpdateData();
     let bulletPacks = Event.Bullet.getFrameUpdateData();

@@ -26,14 +26,8 @@ Trigger.update = function(entities, blocks){
     for(let t in Trigger.list){
         //Triggers to entities
         let trigger = Trigger.list[t];
-        for(let e in entities.P){
-            let entity = entities.P[e];
-            if(trigger.isTouching(entity)){
-                trigger.onTouch(entity);
-            }
-        };
-        for(let e in entities.E){
-            let entity = entities.E[e];
+        for(let e in entities){
+            let entity = entities[e];
             if(trigger.isTouching(entity)){
                 trigger.onTouch(entity);
             }

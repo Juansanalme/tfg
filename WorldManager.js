@@ -37,7 +37,7 @@ const blocks = {
 }
 
 const enemies = [
-    {x:16,z:16},
+    {x:0,z:0},
 ]
 
 _World.load = function (){

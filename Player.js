@@ -137,8 +137,10 @@ class Player {
 
     static onDisconnect(socket, World) {
         World.removeBody(Player.list[socket.id].circleBody);
-        delete Player.list[socket.id];
         Player.removePack.push(socket.id);
+        
+        delete Entity.list[socket.id];
+        delete Player.list[socket.id];
     }
 
     static getAllPlayers() {
