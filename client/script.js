@@ -147,23 +147,20 @@ socket.on('loadWorld', function(worldBlocks, worldMap){
 });
 
 //INIT
-socket.on('init', function(entitiesPack, triggersPack, enemiesPack){
+socket.on('init', function(entitiesPack, triggersPack){
     initPackType(entitiesPack, 0);
-    initPackType(enemiesPack, 0);
     initPackType(triggersPack, 1);
 });
 
 //UPDATE
-socket.on('update', function(entitiesPack, triggersPack, enemiesPack){
+socket.on('update', function(entitiesPack, triggersPack){
     updatePackType(entitiesPack, 0);
-    updatePackType(enemiesPack, 0);
     updatePackType(triggersPack, 1);
 });
 
 //REMOVE
-socket.on('remove', function(entitiesPack, triggersPack, enemiesPack){
+socket.on('remove', function(entitiesPack, triggersPack){
     removePackType(entitiesPack, 0);
-    removePackType(enemiesPack, 0);
     removePackType(triggersPack, 1);
 });
 

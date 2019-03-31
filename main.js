@@ -1,8 +1,7 @@
-//module exports
+//module requires
 const World = require('./WorldManager');
 const Entity = require('./EntityManager');
 const Event = require('./EventManager');
-const Enemy = require('./Enemy');
 const Player = require('./Player');
 
 //EXPRESS
@@ -32,7 +31,7 @@ io.sockets.on('connection', function(socket){
     
     socket.id = Entity.getID();
     SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket, World, Enemy.getAllEnemies());
+    Player.onConnect(socket, World);
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);
@@ -46,16 +45,15 @@ const timeStep = 1 / 60;
 setInterval(function(){
 
     World.step(timeStep);
-    Event.Trigger.update(Entity.list, World.blocks);
+    Event.update(Entity.list, World.blocks);
 
-    let playerPacks = Player.getFrameUpdateData();
-    let bulletPacks = Event.Bullet.getFrameUpdateData();
-    let enemyPacks  = Enemy.getFrameUpdateData();
+    let entityPacks = Entity.getFrameUpdateData();
+    let triggerPacks = Event.getFrameUpdateData();
 
     for(let i in SOCKET_LIST){
-        SOCKET_LIST[i].emit('init',   playerPacks.init,   bulletPacks.init,   enemyPacks.init);
-        SOCKET_LIST[i].emit('update', playerPacks.update, bulletPacks.update, enemyPacks.update);
-        SOCKET_LIST[i].emit('remove', playerPacks.remove, bulletPacks.remove, enemyPacks.remove);
+        SOCKET_LIST[i].emit('init',   entityPacks.init,   triggerPacks.init);
+        SOCKET_LIST[i].emit('update', entityPacks.update, triggerPacks.update);
+        SOCKET_LIST[i].emit('remove', entityPacks.remove, triggerPacks.remove);
 
         if (SOCKET_LIST[i] && SOCKET_LIST[i].toDelete){
             delete SOCKET_LIST[i];

@@ -1,6 +1,7 @@
 const p2 = require('p2');
 const Entity = require ('./EntityManager');
-const Event = require ('./EventManager');
+const Trigger = require ('./EventManager');
+const Bullet = require ('./Trigger_Bullet');
 
 const _WIDTH  = 1280,
       _HEIGHT = 720;
@@ -39,7 +40,7 @@ class Player {
         }
         
         self.shootBullet = function(angle){
-            new Event.Bullet(angle, self.position.x, self.position.z, false, world);
+            new Bullet(angle, self.position.x, self.position.z, false, world);
         };
 
         self.shootingCheck = function(){
@@ -104,13 +105,14 @@ class Player {
         }
 
         Player.list[self.id] = self;
-        Player.initPack.push(self.getInitPack());
+        Entity.list[self.id] = self;
+        Entity.initPack.push(self.getInitPack());
         return self;
     }
 
     //STATIC METHODS
 
-    static onConnect(socket, World, enemies) {
+    static onConnect(socket, World) {
         let player = new Player(socket.id, 22, 22, World);
         
         socket.on('keyPress', function (data) {
@@ -131,13 +133,13 @@ class Player {
         });
 
         socket.emit('loadWorld', World.blocks, World.map);
-        socket.emit('init', Player.getAllPlayers(), Event.Bullet.getAllBullets(), enemies);
+        socket.emit('init', Entity.getAllEntities(), Trigger.getAllTriggers());
         socket.emit('sendSelfID', socket.id);
     }
 
     static onDisconnect(socket, World) {
         World.removeBody(Player.list[socket.id].circleBody);
-        Player.removePack.push(socket.id);
+        Entity.removePack.push(socket.id);
         
         delete Entity.list[socket.id];
         delete Player.list[socket.id];
@@ -149,36 +151,9 @@ class Player {
             players.push(Player.list[i].getInitPack());
         return players;
     }
-
-    static getUpdate() {
-        let pack = [];
-        for (let i in Player.list) {
-            let player = Player.list[i];
-            player.update();
-            pack.push(player.getUpdatePack());
-        }
-        return pack;
-    }
-
-    static getFrameUpdateData() {
-        let packs = {
-            init:   Player.initPack,
-            remove: Player.removePack,           
-            update: Player.getUpdate(),
-        }
-        Player.emptyPacks();
-        return packs;
-    }
-
-    static emptyPacks() {
-        Player.initPack = [];
-        Player.removePack = [];
-    }
 }
-//STATIC VARIABLES
+
 Player.list = {};
-Player.initPack = [];
-Player.removePack = [];
 
 //EXPORTS
 module.exports = Player;

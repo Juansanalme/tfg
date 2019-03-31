@@ -1,12 +1,10 @@
 const p2 = require('p2');
 const Entity = require ('./EntityManager');
-const Event = require ('./EventManager');
+const Bullet = require ('./Trigger_Bullet');
 
 class Enemy {
     constructor(id, x, z, world) {
         var self = Entity(id, x, z);
-        self.isPlayer = false;
-        self.toRemove = false;
 
         //CLASS PROPERTIES
         self.shootingCD = true;
@@ -27,7 +25,7 @@ class Enemy {
             self.updatePosition();
             self.updateSpeed();
             self.calculateAngle();
-            //self.shootingCheck();            
+            self.shootingCheck();            
         };
         self.updatePosition = function(){
             self.position.x = self.circleBody.position[0];            
@@ -35,7 +33,7 @@ class Enemy {
         }
         
         self.shootBullet = function(angle){
-            new Event.Bullet(angle, self.position.x, self.position.z, true, world);
+            new Bullet(angle, self.position.x, self.position.z, true, world);
         };
 
         self.shootingCheck = function(){
@@ -86,14 +84,15 @@ class Enemy {
         self.removeFromGame = function(){
             self.circleBody.removeShape(self.circleShape);
             world.removeBody(self.circleBody);            
-            Enemy.removePack.push(self.id);
+            Entity.removePack.push(self.id);
             
             delete Entity.list[self.id];
             delete Enemy.list[self.id];
         }
 
         Enemy.list[self.id] = self;
-        Enemy.initPack.push(self.getInitPack());
+        Entity.list[self.id] = self;
+        Entity.initPack.push(self.getInitPack());
         return self;
     }
 
@@ -105,41 +104,9 @@ class Enemy {
             enemies.push(Enemy.list[i].getInitPack());
         return enemies;
     }
-
-    static getUpdate() {
-        let pack = [];
-        for (let i in Enemy.list) {
-            let enemy = Enemy.list[i];
-            enemy.update();
-            if (enemy.toRemove) {
-                enemy.removeFromGame();
-            }
-            else {
-                pack.push(enemy.getUpdatePack());
-            }
-        }
-        return pack;
-    }
-
-    static getFrameUpdateData() {
-        let packs = {
-            init:   Enemy.initPack,
-            remove: Enemy.removePack,           
-            update: Enemy.getUpdate(),
-        }
-        Enemy.emptyPacks();
-        return packs;
-    }
-
-    static emptyPacks() {
-        Enemy.initPack = [];
-        Enemy.removePack = [];
-    }
 }
-//STATIC VARIABLES
+
 Enemy.list = {};
-Enemy.initPack = [];
-Enemy.removePack = [];
 
 //EXPORTS
 module.exports = Enemy;
