@@ -1,21 +1,21 @@
 const p2 = require('p2');
 const Entity = require ('./EntityManager');
-const Trigger = require ('./EventManager');
 const Bullet = require ('./Trigger_Bullet');
 
 const _WIDTH  = 1280,
       _HEIGHT = 720;
 
 class Player {
-    constructor(id, x, z, world) {
+    constructor(id, x, z, weapon, world) {
         var self = Entity(id, x, z);
         self.isPlayer = true;
 
         //CLASS PROPERTIES
         self.input = {d:false, a:false, w:false, s:false, mouse:false};
         self.mousePosition = {x:0, y:0};
+        self.attackDamage = 25;
+        self.weapon = weapon;
         self.shootingCD = true;
-        self.shootingTimeCD = 250;
         self.cooldownInterval;
 
         //p2 BODY
@@ -24,8 +24,7 @@ class Player {
             position: [x, z]
         });
         self.circleShape = new p2.Circle({radius:self.radius});
-        self.circleBody.addShape(self.circleShape); 
-        world.addBody(self.circleBody);
+        self.circleBody.addShape(self.circleShape);
 
         //CLASS METHODS
         self.update = function(){
@@ -34,13 +33,9 @@ class Player {
             self.calculateAngle();
             self.shootingCheck();            
         };
-        self.updatePosition = function(){
-            self.position.x = self.circleBody.position[0];            
-            self.position.z = self.circleBody.position[1];
-        }
         
         self.shootBullet = function(angle){
-            new Bullet(angle, self.position.x, self.position.z, false, world);
+            new Bullet(angle, self.position.x, self.position.z, false, self.weapon, self.attackDamage, world);
         };
 
         self.shootingCheck = function(){
@@ -51,7 +46,7 @@ class Player {
                 self.cooldownInterval = setInterval(() => {
                     self.shootingCD = true;
                     clearInterval(self.cooldownInterval);
-                }, self.shootingTimeCD);
+                }, self.weapon.cooldown);
             }
         }
 
@@ -62,7 +57,11 @@ class Player {
         };
 
         self.recieveDamage = function(damage){
-            
+            self.currentHP -= damage;
+        }
+
+        self.changeWeapon = function(weaponLoot){
+            self.weapon = weaponLoot;
         }
 
         self.updateSpeed = function(){
@@ -104,6 +103,8 @@ class Player {
             }
         }
 
+        //Add it to the game
+        world.addBody(self.circleBody);
         Player.list[self.id] = self;
         Entity.list[self.id] = self;
         Entity.initPack.push(self.getInitPack());
@@ -111,9 +112,8 @@ class Player {
     }
 
     //STATIC METHODS
-
-    static onConnect(socket, World) {
-        let player = new Player(socket.id, 22, 22, World);
+    static onConnect(socket, weapon, allTriggers, World) {
+        let player = new Player(socket.id, 22, 22, weapon, World);
         
         socket.on('keyPress', function (data) {
             if (data.inputId === 'leftClick')
@@ -133,16 +133,19 @@ class Player {
         });
 
         socket.emit('loadWorld', World.blocks, World.map);
-        socket.emit('init', Entity.getAllEntities(), Trigger.getAllTriggers());
         socket.emit('sendSelfID', socket.id);
+        socket.emit('init', Entity.getAllEntities(), allTriggers);
     }
 
     static onDisconnect(socket, World) {
-        World.removeBody(Player.list[socket.id].circleBody);
+        let player = Player.list[socket.id];
+        player.circleBody.removeShape(player.circleShape);
+        World.removeBody(player.circleBody);
         Entity.removePack.push(socket.id);
         
         delete Entity.list[socket.id];
         delete Player.list[socket.id];
+        delete this;
     }
 
     static getAllPlayers() {

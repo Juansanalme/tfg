@@ -1,14 +1,19 @@
 const p2 = require('p2');
 const Entity = require ('./EntityManager');
 const Bullet = require ('./Trigger_Bullet');
+const StateMachine = require ('./StateMachine');
 
 class Enemy {
-    constructor(id, x, z, world) {
+    constructor(id, x, z, weapon, world) {
         var self = Entity(id, x, z);
 
         //CLASS PROPERTIES
+        self.initialPosition = {'x':x, 'z':z};
+        self.stateMachine = StateMachine();
+        self.targetPlayer;
+        self.attackDamage = 25;
+        self.weapon = weapon;
         self.shootingCD = true;
-        self.shootingTimeCD = 500;
         self.cooldownInterval;
 
         //p2 BODY
@@ -17,23 +22,16 @@ class Enemy {
             position: [x, z]
         });
         self.circleShape = new p2.Circle({radius:self.radius});
-        self.circleBody.addShape(self.circleShape); 
-        world.addBody(self.circleBody);
+        self.circleBody.addShape(self.circleShape);
 
         //CLASS METHODS
         self.update = function(){
             self.updatePosition();
-            self.updateSpeed();
-            self.calculateAngle();
-            self.shootingCheck();            
+            self.stateMachine.update();
         };
-        self.updatePosition = function(){
-            self.position.x = self.circleBody.position[0];            
-            self.position.z = self.circleBody.position[1];
-        }
         
         self.shootBullet = function(angle){
-            new Bullet(angle, self.position.x, self.position.z, true, world);
+            new Bullet(angle, self.position.x, self.position.z, true, self.weapon, self.attackDamage, world);
         };
 
         self.shootingCheck = function(){
@@ -44,13 +42,11 @@ class Enemy {
                 self.cooldownInterval = setInterval(() => {
                     self.shootingCD = true;
                     clearInterval(self.cooldownInterval);
-                }, self.shootingTimeCD);
+                }, self.weapon.cooldown);
             }
         }
 
-        self.calculateAngle = function(){
-            let x = 0;
-            let y = 0;
+        self.calculateAngle = function(x, y){
             self.lookingAt = (Math.atan2(-x, -y) / Math.PI * 180 + 90).toFixed(2);
         };
 
@@ -61,9 +57,9 @@ class Enemy {
             }
         }
 
-        self.updateSpeed = function(){
-
-        };
+        self.dropLoot = function(){
+            world.createLoot(self.position.x, self.position.z);
+        }
 
         self.getInitPack = function(){
             return{
@@ -82,14 +78,55 @@ class Enemy {
         }
 
         self.removeFromGame = function(){
+            self.dropLoot();
+
             self.circleBody.removeShape(self.circleShape);
             world.removeBody(self.circleBody);            
             Entity.removePack.push(self.id);
             
             delete Entity.list[self.id];
             delete Enemy.list[self.id];
+            delete this;
         }
 
+        //AI STATES
+        var sleep = function(){
+            //look for players
+            //target player
+            self.targetPlayer = true;
+            if(self.targetPlayer){
+                self.stateMachine.setState(followPlayer);
+            }
+        }
+        var followPlayer = function(){
+            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
+            if(distanceFromSpawn > 15){
+                self.targetPlayer = false;
+                self.stateMachine.setState(returnToSpawn);
+            }else if(self.targetPlayer){
+                let angle = 0;
+                self.circleBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * 7.5;
+                self.circleBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 7.5;
+            }else{
+                self.targetPlayer = false;
+                self.stateMachine.setState(returnToSpawn);
+            }
+        }
+        var returnToSpawn = function(){            
+            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
+            if(distanceFromSpawn < 1){
+                self.stateMachine.setState(sleep);
+            }
+            let angle = 180;
+            self.circleBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * 7.5;
+            self.circleBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 7.5;
+        }
+
+        //Set initial state
+        self.stateMachine.setState(sleep);
+
+        //Add it to the game
+        world.addBody(self.circleBody);
         Enemy.list[self.id] = self;
         Entity.list[self.id] = self;
         Entity.initPack.push(self.getInitPack());
@@ -97,7 +134,6 @@ class Enemy {
     }
 
     //STATIC METHODS
-
     static getAllEnemies() {
         let enemies = [];
         for (let i in Enemy.list)

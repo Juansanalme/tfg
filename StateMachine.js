@@ -5,12 +5,12 @@ var StateMachine = function(){
     }
     
     self.setState = function(state){
-        previousState = activeState;
-        activeState = state;
+        previousState = this.activeState;
+        this.activeState = state;
     }
 
     self.update = function(){
-        activeState();
+        this.activeState();
     }
 
     return self;

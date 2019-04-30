@@ -2,6 +2,7 @@ const _WIDTH  = 1280,
       _HEIGHT = 720;
 
 var canvas, engine, scene, camera;
+var mousePosition = {x:0,y:0};
 var socket = io();
 
 function loadCanvas() {
@@ -164,6 +165,10 @@ socket.on('remove', function(entitiesPack, triggersPack){
     removePackType(triggersPack, 1);
 });
 
+setInterval(function(){
+    socket.emit('mouseMove', mousePosition);
+},100/6);
+
 function initPackType(pack, type){
     pack.forEach(element => {
         switch (type){
@@ -200,21 +205,22 @@ function updatePackType(pack, type){
                 v = Trigger.list[element.id];
             break;
         }
+        if (v){
+            let angle = -1 * element.lookingAt * Math.PI / 180; //to radians
+            let axis = new BABYLON.Vector3(0, 1, 0);
+            let quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
+            v.lookingAt = angle;
 
-        let angle = -1 * element.lookingAt * Math.PI / 180; //to radians
-        let axis = new BABYLON.Vector3(0, 1, 0);
-        let quaternion = new BABYLON.Quaternion.RotationAxis(axis, angle);
-        v.lookingAt = angle;
-
-        if (v.body !== undefined) {
-            v.body.position.x = element.position.x;
-            v.body.position.z = element.position.z;
-            v.body.rotationQuaternion = quaternion;
-        }
-        if (v.sprite !== undefined) {
-            v.sprite.position.x = element.position.x;
-            v.sprite.position.z = element.position.z;
-            v.sprite.angle = -1 * angle + Math.PI; 
+            if (v.body !== undefined) {
+                v.body.position.x = element.position.x;
+                v.body.position.z = element.position.z;
+                v.body.rotationQuaternion = quaternion;
+            }
+            if (v.sprite !== undefined) {
+                v.sprite.position.x = element.position.x;
+                v.sprite.position.z = element.position.z;
+                v.sprite.angle = -angle - Math.PI/2; 
+            }
         }
     });
 }
@@ -248,8 +254,7 @@ document.onmouseup = function(){
     mouseEvent(false);
 }
 document.onmousemove = function(evt){
-    let mousePosition = getMousePosition(evt);
-    socket.emit('mouseMove', mousePosition);
+    mousePosition = getMousePosition(evt);
 }
 
 function keyEvent(evt, bool) {

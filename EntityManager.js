@@ -6,16 +6,20 @@ var Entity = function(id, x, z){
         radius: 0.5,
         lookingAt: 0,
 
+        weapon: '0',
         maxHP: 100,
+        maxMana: 100,
         currentHP: 100,
+        currentMana: 100,
         isPlayer: false,
         toRemove: false,
     }
-    /*
-    self.update = function(){}
-    self.getInitPack = function(){}
-    self.getUpdatePack = function(){}
-    */
+    
+    self.updatePosition = function(){
+        self.position.x = self.circleBody.position[0];            
+        self.position.z = self.circleBody.position[1];
+    }
+
     Entity.list[id] = self;
     EntityID++;
     return self;

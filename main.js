@@ -3,6 +3,7 @@ const World = require('./WorldManager');
 const Entity = require('./EntityManager');
 const Event = require('./EventManager');
 const Player = require('./Player');
+const Weapon = require('./WeaponManager');
 
 //EXPRESS
 const express = require('express');
@@ -31,7 +32,7 @@ io.sockets.on('connection', function(socket){
     
     socket.id = Entity.getID();
     SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket, World);
+    Player.onConnect(socket, Weapon.sword, Event.getAllTriggers(), World);
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);
