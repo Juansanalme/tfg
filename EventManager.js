@@ -3,7 +3,7 @@ var Trigger = function(x, z, world){
     var self = {
         id: triggerID,
         position: {'x':x, 'z':z},
-        radius: 0,
+        radius: 0.5,
         isBullet: false
     }
 

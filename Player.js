@@ -64,6 +64,26 @@ class Player {
             self.weapon = weaponLoot;
         }
 
+        self.recoverHP = function(){
+
+            return true;
+        }
+
+        self.recoverMana = function(){
+
+            return true;
+        }
+
+        self.getItemHP = function(){
+
+            return true;
+        }
+
+        self.getItemMana = function(){
+
+            return true;
+        }
+
         self.updateSpeed = function(){
             if (self.input.d)
                 self.circleBody.velocity[0] = 10;

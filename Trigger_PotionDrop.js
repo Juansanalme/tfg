@@ -1,7 +1,7 @@
 const p2 = require('p2');
 const Trigger = require ('./EventManager');
 
-class WeaponDrop {
+class PotionDrop {
     constructor(x, z, dropType, world) {
         var self = Trigger(x, z, world);
 
@@ -16,11 +16,25 @@ class WeaponDrop {
         self.sensorBody = new p2.Body({position:[x, z]});
         self.sensorBody.addShape(self.sensorShape);
 
+        switch(dropType){
+            case 1: self.name = 'healitem'; break;
+            case 2: self.name = 'manaitem'; break;
+            case 3: self.name = 'healpotion'; break;
+            case 4: self.name = 'manapotion'; break;
+        }
+
         //CLASS METHODS
         self.onTouch = function(entity){
             if (entity.isPlayer){
-                entity.changeWeapon(dropType);
-                self.toRemove = true;
+                let inventoryFull;
+                switch(dropType){
+                    case 1: inventoryFull = entity.recoverHP(); break;
+                    case 2: inventoryFull = entity.recoverMana(); break;
+                    case 3: inventoryFull = entity.getItemHP(); break;
+                    case 4: inventoryFull = entity.getItemMana(); break;
+                }
+                if (inventoryFull)
+                    self.toRemove = true;
             }
         }
 
@@ -35,7 +49,7 @@ class WeaponDrop {
                 id: self.id,
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
-                sprite: dropType.dropName,
+                sprite: self.name,
             }
         }
         self.getUpdatePack = function(){
@@ -51,14 +65,14 @@ class WeaponDrop {
             world.removeBody(self.sensorBody);
             Trigger.removePack.push(self.id);
 
-            delete WeaponDrop.list[self.id];
+            delete PotionDrop.list[self.id];
             delete Trigger.list[self.id];
             delete this;
         }
 
         //add it to the game
         world.addBody(self.sensorBody);
-        WeaponDrop.list[self.id] = self;
+        PotionDrop.list[self.id] = self;
         Trigger.list[self.id] = self;
         Trigger.initPack.push(self.getInitPack());
         return self;
@@ -66,6 +80,6 @@ class WeaponDrop {
 }
 
 //STATIC VARIABLES
-WeaponDrop.list = {};
+PotionDrop.list = {};
 
-module.exports = WeaponDrop;
+module.exports = PotionDrop;

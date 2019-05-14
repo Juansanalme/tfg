@@ -6,7 +6,7 @@ var Entity = function(id, x, z){
         radius: 0.5,
         lookingAt: 0,
 
-        weapon: '0',
+        weapon: null,
         maxHP: 100,
         maxMana: 100,
         currentHP: 100,

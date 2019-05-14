@@ -3,6 +3,7 @@ const Entity = require('./EntityManager');
 const Enemy = require('./Enemy');
 const Weapon = require('./WeaponManager');
 const WeaponDrop = require('./Trigger_WeaponDrop');
+const PotionDrop = require('./Trigger_PotionDrop');
 
 var _World = new p2.World({
     gravity:[0, 0]
@@ -109,18 +110,28 @@ _World.angleBetweenTwoPoints = function (point1, point2){
 
 _World.createLoot = function (x, z){
 
-    let randomWeapon = Math.floor(Math.random() * 6) + 1;
-    let weapondrop;
-    switch (randomWeapon){
-        case 1: weapondrop = Weapon.sword; break;
-        case 2: weapondrop = Weapon.lance; break;
-        case 3: weapondrop = Weapon.axe; break;
-        case 4: weapondrop = Weapon.bow; break;
-        case 5: weapondrop = Weapon.dagger; break;
-        case 6: weapondrop = Weapon.magic; break;
-    }
+    let randomLoot = Math.floor(Math.random() * 10) + 1;
+    let droppedItem;
 
-    new WeaponDrop(x, z, weapondrop, _World);
+    if (randomLoot > 0 && randomLoot < 7){
+        switch (randomLoot){
+            case 1: droppedItem = Weapon.sword; break;
+            case 2: droppedItem = Weapon.lance; break;
+            case 3: droppedItem = Weapon.axe; break;
+            case 4: droppedItem = Weapon.bow; break;
+            case 5: droppedItem = Weapon.dagger; break;
+            case 6: droppedItem = Weapon.magic; break;
+        }   
+        new WeaponDrop(x, z, droppedItem, _World);
+    }else{
+        switch (randomLoot){
+            case 7: droppedItem = 1; break;
+            case 8: droppedItem = 2; break;
+            case 9: droppedItem = 3; break;
+            case 10: droppedItem = 4; break;
+        }
+        new PotionDrop(x, z, droppedItem, _World);
+    }
 
 }
 

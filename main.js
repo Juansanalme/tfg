@@ -1,9 +1,9 @@
 //module requires
 const World = require('./WorldManager');
-const Entity = require('./EntityManager');
 const Event = require('./EventManager');
-const Player = require('./Player');
+const Entity = require('./EntityManager');
 const Weapon = require('./WeaponManager');
+const Player = require('./Player');
 
 //EXPRESS
 const express = require('express');

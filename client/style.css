@@ -8,19 +8,25 @@ canvas{
 	background-color: white;
 }
 
+canvas:hover{
+	cursor: url('/cursor.png') 16 16, auto;
+	/*cursor: crosshair;*/
+}
+
 body{
 	margin: 0 auto;
 	min-width: 380px;
     /*max-width: 1280px;*/
     
-	background-color: rgb(170, 170, 170);
+	/*background-color: rgb(170, 170, 170);*/
+	background-color: rgb(64, 64, 64);
 }
 
 body > header{
 	background-color: rgb(64, 64, 64);
 	color: #fff;
     overflow: hidden;
-    height: 3em;
+    height: 2em;
 
 	display: flex;
 	flex-direction: row;
@@ -28,11 +34,15 @@ body > header{
 }
 
 body > div{
-    margin-top: 2em;
+    margin-top: 1em;
 	display: flex;
 	flex-wrap: wrap;
 }
 
 body > div > canvas{
     margin: 0 auto;
+}
+
+body > footer{
+	margin-bottom: 2em;
 }

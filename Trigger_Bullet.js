@@ -73,7 +73,7 @@ class Bullet {
                 id: self.id,
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
-                sprite: self.weapon.sprite,
+                sprite: self.weapon.name,
             }
         }
         self.getUpdatePack = function(){
