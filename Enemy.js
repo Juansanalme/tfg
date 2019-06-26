@@ -3,6 +3,15 @@ const Entity = require ('./EntityManager');
 const Bullet = require ('./Trigger_Bullet');
 const StateMachine = require ('./StateMachine');
 
+const _PlayerDetectDistance = 15,
+      _RoamMaxDistance = 10,
+      _FollowMaxDistance = 25,
+      _PlayerFollowDistance = 5,
+      _SpawnDistance = 2,
+      _roamSpeed = 5,
+      _followSpeed = 6,
+      _returnSpeed = 7.5;
+
 class Enemy {
     constructor(id, x, z, weapon, world) {
         var self = Entity(id, x, z);
@@ -10,7 +19,7 @@ class Enemy {
         //CLASS PROPERTIES
         self.initialPosition = {'x':x, 'z':z};
         self.stateMachine = StateMachine();
-        self.targetPlayer;
+        self.targetPlayer = false;
         self.attackDamage = 25;
         self.weapon = weapon;
         self.shootingCD = true;
@@ -53,6 +62,7 @@ class Enemy {
         self.recieveDamage = function(damage){
             self.currentHP -= damage;
             if (self.currentHP <= 0){
+                self.stateMachine.setState(dead);
                 self.toRemove = true;
             }
         }
@@ -90,46 +100,124 @@ class Enemy {
         }
 
         //AI STATES
-        var sleep = function(){
-            //look for players
-            //target player
-            self.targetPlayer = true;
-            if(self.targetPlayer){
-                self.stateMachine.setState(followPlayer);
+
+        var getClosestPlayer = function (){
+            let bestDistance = 0;
+            self.closestPlayerPosition = false;
+            for(let i in Entity.list){             
+                if (Entity.list[i].isPlayer){
+                    let distance = world.distanceBetweenTwoPoints(self.position, Entity.list[i].position);
+                    if (bestDistance == 0 || distance > bestDistance){
+                        bestDistance = distance;
+                        self.closestPlayerPosition = Entity.list[i].position;
+                    }
+                }
             }
         }
-        var followPlayer = function(){
-            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
-            if(distanceFromSpawn > 15){
-                self.targetPlayer = false;
-                self.stateMachine.setState(returnToSpawn);
-            }else if(self.targetPlayer){
-                let angle = 0;
-                self.circleBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * 7.5;
-                self.circleBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 7.5;
-            }else{
-                self.targetPlayer = false;
-                self.stateMachine.setState(returnToSpawn);
-            }
-        }
-        var returnToSpawn = function(){            
-            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
-            if(distanceFromSpawn < 1){
-                self.stateMachine.setState(sleep);
-            }
-            let angle = 180;
-            self.circleBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * 7.5;
-            self.circleBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * 7.5;
+        
+        self.closestPlayerPosition;
+        self.lookForPlayersInterval;
+        self.randomMovementInterval;
+        self.randomDirection = 0;
+
+        var setAngleMov = function(angle, speed){
+            self.circleBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * speed;
+            self.circleBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * speed;
+            self.lookingAt = angle;
         }
 
-        //Set initial state
-        self.stateMachine.setState(sleep);
+        var sleep = function(){
+            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
+            if(distanceFromSpawn > _RoamMaxDistance){
+                self.stateMachine.setState(returnToSpawn);
+            }
+
+            if (self.closestPlayerPosition){
+                let distanceFromClosestPlayer = world.distanceBetweenTwoPoints(self.position, self.closestPlayerPosition);
+                if(distanceFromClosestPlayer < _PlayerDetectDistance){
+                    self.stateMachine.setState(followPlayer);
+                }
+            }
+        }
+        sleep.onEnter = function(){
+            clearInterval(self.lookForPlayersInterval);
+            clearInterval(self.randomMovementInterval);
+
+            self.randomMovementInterval = setInterval(() => {
+                self.randomDirection = Math.random() * 359;
+                setAngleMov(self.randomDirection, _roamSpeed);
+            }, 1000);
+                
+            self.lookForPlayersInterval = setInterval(() => {
+                getClosestPlayer();
+            }, 1000 * 1/3);
+        }
+
+        var followPlayer = function(){
+            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
+            if(distanceFromSpawn > _FollowMaxDistance){
+                self.stateMachine.setState(returnToSpawn);
+            }else if(self.closestPlayerPosition){
+                let distanceToPlayer = world.distanceBetweenTwoPoints(self.position, self.closestPlayerPosition);
+                if(distanceToPlayer < _PlayerDetectDistance + _PlayerFollowDistance){
+                    let angle = world.angleBetweenTwoPoints(self.position, self.closestPlayerPosition);
+                    setAngleMov(angle, -_followSpeed);
+                }else{
+                    self.stateMachine.setState(returnToSpawn);
+                }
+            }else{
+                self.stateMachine.setState(returnToSpawn);
+            }
+        }       
+        followPlayer.onEnter = function(){
+            //clearInterval(self.lookForPlayersInterval);
+            clearInterval(self.randomMovementInterval);
+        }
+
+        var returnToSpawn = function(){            
+            let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
+            if(distanceFromSpawn < _SpawnDistance){                    
+                setAngleMov(0, 0);
+                self.stateMachine.setState(sleep);
+            }
+            /*
+            if (self.closestPlayerPosition){
+                let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
+                let distanceToPlayer = world.distanceBetweenTwoPoints(self.position, self.closestPlayerPosition);
+                if (distanceToPlayer < 5 && distanceFromSpawn + 5 < _FollowMaxDistance){
+                    self.stateMachine.setState(followPlayer);
+                }
+            }*/
+        }
+        returnToSpawn.onEnter = function(){
+            //clearInterval(self.lookForPlayersInterval);
+            clearInterval(self.randomMovementInterval);
+
+            self.randomMovementInterval = setInterval(() => {
+                let angle = world.angleBetweenTwoPoints(self.position, self.initialPosition);
+                setAngleMov(angle, -_returnSpeed);           
+            }, 2000);
+            let angle = world.angleBetweenTwoPoints(self.position, self.initialPosition);
+            setAngleMov(angle, -_returnSpeed);
+        }
+
+        var dead = function(){
+        }
+        dead.onEnter = function(){
+            clearInterval(self.lookForPlayersInterval);  
+            clearInterval(self.randomMovementInterval);
+            setAngleMov(0, 0);      
+        }
 
         //Add it to the game
         world.addBody(self.circleBody);
         Enemy.list[self.id] = self;
         Entity.list[self.id] = self;
         Entity.initPack.push(self.getInitPack());
+
+        //Set initial state
+        self.stateMachine.setState(sleep);
+
         return self;
     }
 

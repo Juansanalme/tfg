@@ -31,7 +31,7 @@ class Player {
             self.updatePosition();
             self.updateSpeed();
             self.calculateAngle();
-            self.shootingCheck();            
+            self.shootingCheck();
         };
         
         self.shootBullet = function(angle){
@@ -65,7 +65,9 @@ class Player {
         }
 
         self.recoverHP = function(){
-
+            self.currentHP += 50;
+            if (self.currentHP > self.maxHP)
+                self.currentHP = self.maxHP;
             return true;
         }
 

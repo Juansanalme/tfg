@@ -41,6 +41,7 @@ Trigger.update = function(entities, blocks){
             });
         }
     };
+
 }
 
 Trigger.getUpdate = function(){

@@ -61,7 +61,7 @@ class Bullet {
             if (self.traveledDistance > self.weapon.range)
                 self.toRemove = true;
             self.updatePosition();
-        };
+        }
         self.updatePosition = function(){
             self.position.x = self.sensorBody.position[0];
             self.position.z = self.sensorBody.position[1];

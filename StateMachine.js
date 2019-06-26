@@ -7,6 +7,8 @@ var StateMachine = function(){
     self.setState = function(state){
         previousState = this.activeState;
         this.activeState = state;
+
+        state.onEnter();
     }
 
     self.update = function(){

@@ -101,7 +101,10 @@ _World.distanceBetweenTwoPoints = function (initial, final){
 }
 
 _World.angleBetweenTwoPoints = function (point1, point2){
-    let angle = Math.toDegrees(Math.atan2(point2.y - point1.y, point2.x - point1.x));
+    let horizDistance = Math.floor(point1.x - point2.x);
+    let vertDistance = Math.floor(point1.z - point2.z);
+    let angleRad = Math.atan2(vertDistance, horizDistance);
+    let angle = angleRad * 180 / Math.PI;
     if(angle < 0){
         angle += 360;
     }
