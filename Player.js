@@ -112,8 +112,11 @@ class Player {
         self.getInitPack = function(){
             return{
                 id: self.id,
+                model: '',
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
+                hp: self.maxHP,
+                
             }
         }
 
@@ -122,6 +125,7 @@ class Player {
                 id: self.id,
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
+                hp: self.currentHP,
             }
         }
 

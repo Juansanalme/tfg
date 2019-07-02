@@ -7,6 +7,12 @@ class Entity {
         this.body.position.x = pack.position.x;
         this.body.position.z = pack.position.z;
         this.body.position.y = 0.5;
+        this.model = pack.model;
+
+        if(pack.hp){
+            this.maxHp = pack.hp;
+            this.currentHp = pack.hp;
+        }
     }
 }
 Entity.list = {};

@@ -3,27 +3,28 @@ const Entity = require ('./EntityManager');
 const Bullet = require ('./Trigger_Bullet');
 const StateMachine = require ('./StateMachine');
 
-const _PlayerDetectDistance = 15,
-      _RoamMaxDistance = 10,
-      _FollowMaxDistance = 25,
-      _PlayerFollowDistance = 5,
-      _SpawnDistance = 2,
-      _roamSpeed = 5,
-      _followSpeed = 6,
-      _returnSpeed = 7.5;
-
 class Enemy {
-    constructor(id, x, z, weapon, world) {
+    constructor(id, x, z, type, weapon, world) {
         var self = Entity(id, x, z);
 
         //CLASS PROPERTIES
         self.initialPosition = {'x':x, 'z':z};
         self.stateMachine = StateMachine();
-        self.targetPlayer = false;
         self.attackDamage = 25;
-        self.weapon = weapon;
         self.shootingCD = true;
         self.cooldownInterval;
+
+        //Type properties
+        self.weapon = weapon;
+        var
+        _PlayerDetectDistance = type.playerDetectDistance,
+        _RoamMaxDistance = type.roamMaxDistance,
+        _FollowMaxDistance = type.followMaxDistance,
+        _PlayerFollowDistance = type.playerFollowDistance,
+        _SpawnDistance = type.spawnDistance,
+        _roamSpeed = type.roamSpeed,
+        _followSpeed = type.followSpeed,
+        _returnSpeed = type.returnSpeed;
 
         //p2 BODY
         self.circleBody = new p2.Body({
@@ -76,6 +77,7 @@ class Enemy {
                 id: self.id,
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
+                model: type.model,
             }
         }
 
@@ -123,7 +125,7 @@ class Enemy {
         var setAngleMov = function(angle, speed){
             self.circleBody.velocity[0] = Math.cos(angle / 180 * Math.PI) * speed;
             self.circleBody.velocity[1] = Math.sin(angle / 180 * Math.PI) * speed;
-            self.lookingAt = angle;
+            self.lookingAt = angle - 180;
         }
 
         var sleep = function(){
@@ -154,6 +156,7 @@ class Enemy {
         }
 
         var followPlayer = function(){
+
             let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
             if(distanceFromSpawn > _FollowMaxDistance){
                 self.stateMachine.setState(returnToSpawn);
@@ -168,13 +171,15 @@ class Enemy {
             }else{
                 self.stateMachine.setState(returnToSpawn);
             }
+
+            self.shootingCheck();
         }       
         followPlayer.onEnter = function(){
             //clearInterval(self.lookForPlayersInterval);
             clearInterval(self.randomMovementInterval);
         }
 
-        var returnToSpawn = function(){            
+        var returnToSpawn = function(){     
             let distanceFromSpawn = world.distanceBetweenTwoPoints(self.initialPosition, self.position);
             if(distanceFromSpawn < _SpawnDistance){                    
                 setAngleMov(0, 0);

@@ -1,6 +1,7 @@
 const p2 = require('p2');
 const Entity = require('./EntityManager');
 const Enemy = require('./Enemy');
+const EnemyType = require('./EnemyManager');
 const Weapon = require('./WeaponManager');
 const WeaponDrop = require('./Trigger_WeaponDrop');
 const PotionDrop = require('./Trigger_PotionDrop');
@@ -40,15 +41,15 @@ const blocks = {
 }
 
 const enemies = [
-    {x:0,z:0},
+    {x:0,z:0,type:'generic',weapon:'sword'},
     
-    {x:0,z:30},
+    {x:0,z:30,type:'generic',weapon:'lance'},
     
-    {x:00,z:10},
-    {x:30,z:30},
+    {x:0,z:10,type:'generic',weapon:'axe'},
+    {x:30,z:30,type:'generic',weapon:'bow'},
     
-    {x:30,z:0},
-    {x:60,z:0},
+    {x:30,z:0,type:'generic',weapon:'dagger'},
+    {x:60,z:0,type:'generic',weapon:'sword'},
 ]
 
 _World.load = function (){
@@ -88,7 +89,9 @@ _World.load = function (){
     console.log('Creating enemies');
     enemies.forEach(enemy => {
         let id = Entity.getID();
-        new Enemy(id, enemy.x, enemy.z, Weapon.sword, _World);
+        let type = EnemyType[enemy.type];
+        let weapon = Weapon[enemy.weapon];
+        new Enemy(id, enemy.x, enemy.z, type, weapon, _World);
     });
 
     console.log('World Loaded');

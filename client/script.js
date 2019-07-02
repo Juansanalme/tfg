@@ -198,6 +198,9 @@ function updatePackType(pack, type){
                     if (v.id == selfID){
                         camera.position.x = element.position.x;
                         camera.position.z = element.position.z -10;
+                        if(element.hp && v.currentHp){
+                            v.currentHp = element.hp;
+                        }
                     }
                 }  
             break;
