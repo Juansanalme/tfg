@@ -28,11 +28,15 @@ var SOCKET_LIST = {};
 
 const io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
-    console.log('socket connection, id = ' + Entity.getID());
+    let id = Entity.getID();
+    console.log('socket connection, id = ' + id);
     
-    socket.id = Entity.getID();
+    socket.id = id;
     SOCKET_LIST[socket.id] = socket;
-    Player.onConnect(socket, Weapon.sword, Event.getAllTriggers(), World);
+        
+    socket.on('dataLoaded',function(){
+        Player.onConnect(socket, Weapon.sword, Event.getAllTriggers(), World);
+    });
 
     socket.on('disconnect',function(){
         console.log('socket disconnection, id = ' + socket.id);

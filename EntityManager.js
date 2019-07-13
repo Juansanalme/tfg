@@ -21,7 +21,6 @@ var Entity = function(id, x, z){
     }
 
     Entity.list[id] = self;
-    EntityID++;
     return self;
 }
 
@@ -63,7 +62,9 @@ Entity.emptyPacks = function() {
 }
 
 Entity.getID = function(){
-    return EntityID;
+    let id = EntityID;
+    EntityID++;
+    return id;
 }
 
 Entity.list = {};

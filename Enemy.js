@@ -147,7 +147,7 @@ class Enemy {
 
             self.randomMovementInterval = setInterval(() => {
                 self.randomDirection = Math.random() * 359;
-                setAngleMov(self.randomDirection, _roamSpeed);
+                setAngleMov(self.randomDirection, -_roamSpeed);
             }, 1000);
                 
             self.lookForPlayersInterval = setInterval(() => {

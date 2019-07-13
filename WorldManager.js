@@ -45,8 +45,8 @@ const enemies = [
     
     {x:0,z:30,type:'generic',weapon:'lance'},
     
-    {x:0,z:10,type:'generic',weapon:'axe'},
-    {x:30,z:30,type:'generic',weapon:'bow'},
+    {x:0,z:10,type:'wolf',weapon:'axe'},
+    {x:30,z:30,type:'wolf',weapon:'bow'},
     
     {x:30,z:0,type:'generic',weapon:'dagger'},
     {x:60,z:0,type:'generic',weapon:'sword'},

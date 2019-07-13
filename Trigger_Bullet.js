@@ -10,7 +10,7 @@ class Bullet {
         self.lookingAt = angle;
         self.initialPosition = {'x':x, 'z':z};
         self.traveledDistance = 0;
-        self.attack = userAttack;
+        //self.attack = userAttack;
         self.isEnemy = enemy;
         self.isBullet = true;
         self.weapon = weapon;
@@ -29,12 +29,12 @@ class Bullet {
         self.onTouch = function(entity){
             if (entity.isPlayer){
                 if (self.isEnemy){//damage to player
-                    entity.recieveDamage(self.attack);
+                    entity.recieveDamage(weapon.damage);
                     self.toRemove = true;
                 }
             }else{
                 if (!self.isEnemy){//damage to enemy
-                    entity.recieveDamage(self.attack);
+                    entity.recieveDamage(weapon.damage);
                     self.toRemove = true;
                 }
             }

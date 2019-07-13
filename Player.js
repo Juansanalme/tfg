@@ -58,6 +58,14 @@ class Player {
 
         self.recieveDamage = function(damage){
             self.currentHP -= damage;
+
+            if (self.currentHP <= 0){
+                self.die();
+            }
+        }
+
+        self.die = function(){
+            
         }
 
         self.changeWeapon = function(weaponLoot){
@@ -112,7 +120,7 @@ class Player {
         self.getInitPack = function(){
             return{
                 id: self.id,
-                model: '',
+                model: "wizard",
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
                 hp: self.maxHP,
@@ -158,20 +166,23 @@ class Player {
             player.mousePosition.y = data.y;
         });
 
-        socket.emit('loadWorld', World.blocks, World.map);
+        
         socket.emit('sendSelfID', socket.id);
+        socket.emit('loadWorld', World.blocks, World.map);
         socket.emit('init', Entity.getAllEntities(), allTriggers);
     }
 
     static onDisconnect(socket, World) {
         let player = Player.list[socket.id];
-        player.circleBody.removeShape(player.circleShape);
-        World.removeBody(player.circleBody);
-        Entity.removePack.push(socket.id);
-        
-        delete Entity.list[socket.id];
-        delete Player.list[socket.id];
-        delete this;
+        if(player){
+            player.circleBody.removeShape(player.circleShape);
+            World.removeBody(player.circleBody);
+            Entity.removePack.push(socket.id);
+            
+            delete Entity.list[socket.id];
+            delete Player.list[socket.id];
+            delete this;
+        }
     }
 
     static getAllPlayers() {
