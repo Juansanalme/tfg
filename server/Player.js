@@ -11,12 +11,16 @@ class Player {
         self.isPlayer = true;
 
         //CLASS PROPERTIES
-        self.input = {d:false, a:false, w:false, s:false, mouse:false};
+        self.input = {d:false, a:false, w:false, s:false, mouse:false, e:false, r:false};
         self.mousePosition = {x:0, y:0};
         self.attackDamage = 25;
         self.weapon = weapon;
         self.shootingCD = true;
         self.cooldownInterval;
+        self.itemIntervalHP, self.itemIntervalMana;
+        self.healPotionCD = self.manaPotionCD = true;
+        self.healPotions = 0;
+        self.manaPotions = 0;
 
         //p2 BODY
         self.circleBody = new p2.Body({
@@ -32,6 +36,7 @@ class Player {
             self.updateSpeed();
             self.calculateAngle();
             self.shootingCheck();
+            self.potionCheck();
         };
         
         self.shootBullet = function(angle){
@@ -60,6 +65,7 @@ class Player {
             self.currentHP -= damage;
 
             if (self.currentHP <= 0){
+                self.currentHP = 0;
                 self.die();
             }
         }
@@ -78,20 +84,57 @@ class Player {
                 self.currentHP = self.maxHP;
             return true;
         }
-
         self.recoverMana = function(){
-
+            self.currentMana += 50;
+            if (self.currentMana > self.maxMana)
+                self.currentMana = self.maxMana;
             return true;
         }
-
+ 
         self.getItemHP = function(){
-
-            return true;
+            if (self.healPotions < 5){
+                self.healPotions++;
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        self.getItemMana = function(){
+            if (self.manaPotions < 5){
+                self.manaPotions++;
+                return true;
+            }
+            else{
+                return false;
+            }
         }
 
-        self.getItemMana = function(){
+        self.potionCheck = function(){
 
-            return true;
+            if (self.input.e)
+                if (self.healPotionCD && self.healPotions > 0){
+                    self.healPotionCD = false;
+                    self.healPotions--;
+                    self.recoverHP();
+        
+                    self.itemIntervalHP = setInterval(() => {
+                        self.healPotionCD = true;
+                        clearInterval(self.itemIntervalHP);
+                    }, 1000 * 5);
+                }
+
+            if (self.input.r)
+                if (self.manaPotionCD && self.manaPotions > 0){
+                    self.manaPotionCD = false;
+                    self.manaPotions--;
+                    self.recoverMana();
+                    
+                    self.itemIntervalMana = setInterval(() => {
+                        self.manaPotionCD = true;
+                        clearInterval(self.itemIntervalMana);
+                    }, 1000 * 5);
+                }
         }
 
         self.updateSpeed = function(){
@@ -135,6 +178,8 @@ class Player {
                 lookingAt: self.lookingAt,
                 hp: self.currentHP,
                 mana: self.currentMana,
+                hpPotions: self.healPotions,
+                manaPotions: self.manaPotions,
             }
         }
 
@@ -161,13 +206,16 @@ class Player {
                 player.input.d = data.state;
             else if (data.inputId === 'up')
                 player.input.w = data.state;
+            else if (data.inputId === 'heal')
+                player.input.e = data.state;
+            else if (data.inputId === 'mana')
+                player.input.r = data.state;
         });
         socket.on('mouseMove', function (data) {
             player.mousePosition.x = data.x;
             player.mousePosition.y = data.y;
         });
 
-        
         socket.emit('sendSelfID', socket.id);
         socket.emit('loadWorld', World.blocks, World.map);
         socket.emit('init', Entity.getAllEntities(), allTriggers);

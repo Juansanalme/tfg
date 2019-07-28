@@ -124,14 +124,14 @@ function removePackTrigger(pack){
 function updatePlayerGUI(element, v){
     camera.position.x = element.position.x;
     camera.position.z = element.position.z -10;
-    if(element.hp && v.currentHp)
-        if(element.hp != v.currentHp || element.mana != v.currentMana){
-            v.currentHp = element.hp;
-            v.currentMana = element.mana;
 
-            changeBarSize(v.currentHp, v.currentMana);
-        }
+    v.currentHp = element.hp;
+    v.currentMana = element.mana;
+    changeBarSize(v.currentHp, v.currentMana);
 
+    v.hpPotions = element.hpPotions;
+    v.manaPotions = element.manaPotions;
+    changePotionCount(v.hpPotions, v.manaPotions);
 
 }
 
@@ -193,6 +193,8 @@ function keyEvent(evt, bool) {
     else if(evt.keyCode === 83) socket.emit('keyPress', {inputId:'down',  state:bool}); //s
     else if(evt.keyCode === 65) socket.emit('keyPress', {inputId:'left',  state:bool}); //a
     else if(evt.keyCode === 87) socket.emit('keyPress', {inputId:'up',    state:bool}); //w
+    else if(evt.keyCode === 69) socket.emit('keyPress', {inputId:'heal',  state:bool}); //e
+    else if(evt.keyCode === 82) socket.emit('keyPress', {inputId:'mana',  state:bool}); //r
 }
 
 function mouseEvent(bool) {

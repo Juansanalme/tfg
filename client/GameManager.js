@@ -13,6 +13,8 @@ class Entity {
         if(pack.hp){
             this.currentHp = pack.hp;
             this.currentMana = pack.mana;
+            this.hpPotions = 0;
+            this.manaPotions = 0;
         }
     }
 }
