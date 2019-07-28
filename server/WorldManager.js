@@ -1,6 +1,5 @@
 const p2 = require('p2');
-const Entity = require('./EntityManager');
-const Enemy = require('./Enemy');
+const EnemySpawner = require('./EnemySpawner');
 const EnemyType = require('./EnemyManager');
 const Weapon = require('./WeaponManager');
 const WeaponDrop = require('./Trigger_WeaponDrop');
@@ -40,7 +39,7 @@ const blocks = {
     posZ:'',
 }
 
-const enemies = [
+const enemySpawners = [
     {x:0,z:0,type:'generic',weapon:'sword'},
     
     {x:0,z:30,type:'generic',weapon:'lance'},
@@ -55,7 +54,7 @@ const enemies = [
 _World.load = function (){
 
     // GROUNDS
-    console.log('Creating ground');
+    console.log('Generating terrain...');
     _World.map = map;
 
     // BLOCKS
@@ -86,12 +85,11 @@ _World.load = function (){
     }
 
     // ENEMIES
-    console.log('Creating enemies');
-    enemies.forEach(enemy => {
-        let id = Entity.getID();
-        let type = EnemyType[enemy.type];
-        let weapon = Weapon[enemy.weapon];
-        new Enemy(id, enemy.x, enemy.z, type, weapon, _World);
+    console.log('Generating enemy nests...');
+    enemySpawners.forEach(spawn => {
+        let type = EnemyType[spawn.type];
+        let weapon = Weapon[spawn.weapon];
+        new EnemySpawner(spawn.x, spawn.z, type, weapon, _World);
     });
 
     console.log('World Loaded');

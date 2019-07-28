@@ -1,9 +1,10 @@
 //module requires
-const World = require('./server/WorldManager');
-const Event = require('./server/EventManager');
-const Entity = require('./server/EntityManager');
-const Weapon = require('./server/WeaponManager');
-const Player = require('./server/Player');
+const World   = require('./server/WorldManager');
+const Spawner = require('./server/EnemySpawner');
+const Event   = require('./server/EventManager');
+const Entity  = require('./server/EntityManager');
+const Weapon  = require('./server/WeaponManager');
+const Player  = require('./server/Player');
 
 //EXPRESS
 const express = require('express');
@@ -29,7 +30,7 @@ var SOCKET_LIST = {};
 const io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
     let id = Entity.getID();
-    console.log('socket connection, id = ' + id);
+    console.log('-> socket connection, id: ' + id);
     
     socket.id = id;
     SOCKET_LIST[socket.id] = socket;
@@ -39,7 +40,7 @@ io.sockets.on('connection', function(socket){
     });
 
     socket.on('disconnect',function(){
-        console.log('socket disconnection, id = ' + socket.id);
+        console.log('<- socket disconnection, id: ' + socket.id);
         Player.onDisconnect(socket, World);
         SOCKET_LIST[socket.id].toDelete = true;
     });
@@ -51,6 +52,7 @@ setInterval(function(){
 
     World.step(timeStep);
     Event.update(Entity.list, World.blocks);
+    Spawner.update();
 
     let entityPacks = Entity.getFrameUpdateData();
     let triggerPacks = Event.getFrameUpdateData();
@@ -62,7 +64,7 @@ setInterval(function(){
 
         if (SOCKET_LIST[i] && SOCKET_LIST[i].toDelete){
             delete SOCKET_LIST[i];
-            console.log('socket with id = ' + i + ' deleted');
+            console.log('<> socket with id: ' + i + ' deleted');
         }
     }
 

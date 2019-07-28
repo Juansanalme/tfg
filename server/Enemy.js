@@ -4,32 +4,32 @@ const Bullet = require ('./Trigger_Bullet');
 const StateMachine = require ('./StateMachine');
 
 class Enemy {
-    constructor(id, x, z, type, weapon, world) {
-        var self = Entity(id, x, z);
+    constructor(id, nest, world) {
+        var self = Entity(id, nest.position.x, nest.position.z);
 
         //CLASS PROPERTIES
-        self.initialPosition = {'x':x, 'z':z};
+        self.initialPosition = {'x':nest.position.x, 'z':nest.position.z};
         self.stateMachine = StateMachine();
         self.attackDamage = 25;
         self.shootingCD = true;
         self.cooldownInterval;
 
         //Type properties
-        self.weapon = weapon;
+        self.weapon = nest.weapon;
         var
-        _PlayerDetectDistance = type.playerDetectDistance,
-        _RoamMaxDistance = type.roamMaxDistance,
-        _FollowMaxDistance = type.followMaxDistance,
-        _PlayerFollowDistance = type.playerFollowDistance,
-        _SpawnDistance = type.spawnDistance,
-        _roamSpeed = type.roamSpeed,
-        _followSpeed = type.followSpeed,
-        _returnSpeed = type.returnSpeed;
+        _PlayerDetectDistance = nest.enemyType.playerDetectDistance,
+        _RoamMaxDistance = nest.enemyType.roamMaxDistance,
+        _FollowMaxDistance = nest.enemyType.followMaxDistance,
+        _PlayerFollowDistance = nest.enemyType.playerFollowDistance,
+        _SpawnDistance = nest.enemyType.spawnDistance,
+        _roamSpeed = nest.enemyType.roamSpeed,
+        _followSpeed = nest.enemyType.followSpeed,
+        _returnSpeed = nest.enemyType.returnSpeed;
 
         //p2 BODY
         self.circleBody = new p2.Body({
             mass: 15,
-            position: [x, z]
+            position: [nest.position.x, nest.position.z]
         });
         self.circleShape = new p2.Circle({radius:self.radius});
         self.circleBody.addShape(self.circleShape);
@@ -52,7 +52,7 @@ class Enemy {
                 self.cooldownInterval = setInterval(() => {
                     self.shootingCD = true;
                     clearInterval(self.cooldownInterval);
-                }, self.weapon.cooldown);
+                }, self.weapon.cooldown * 2);
             }
         }
 
@@ -77,7 +77,7 @@ class Enemy {
                 id: self.id,
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
-                model: type.model,
+                model: nest.enemyType.model,
             }
         }
 
@@ -90,6 +90,7 @@ class Enemy {
         }
 
         self.removeFromGame = function(){
+            nest.childDeath();
             self.dropLoot();
 
             self.circleBody.removeShape(self.circleShape);
@@ -207,6 +208,7 @@ class Enemy {
         }
 
         var dead = function(){
+            //
         }
         dead.onEnter = function(){
             clearInterval(self.lookForPlayersInterval);  

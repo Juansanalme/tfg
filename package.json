@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/Juansanalme/tfg#readme",
   "dependencies": {
+    "babylonjs": "^4.0.3",
+    "babylonjs-gui": "^4.0.3",
     "express": "^4.16.4",
     "p2": "^0.7.1",
     "socket.io": "^2.1.1"

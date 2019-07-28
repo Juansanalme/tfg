@@ -134,6 +134,7 @@ class Player {
                 position: {'x':self.position.x, 'z':self.position.z},
                 lookingAt: self.lookingAt,
                 hp: self.currentHP,
+                mana: self.currentMana,
             }
         }
 

@@ -10,6 +10,10 @@ function loadCanvas() {
     canvas.width = _WIDTH;
     canvas.height = _HEIGHT;
     
+    canvas.oncontextmenu = function (e) {
+        e.preventDefault();
+    };
+
     engine = new BABYLON.Engine(canvas, true);
     scene = createScene();
 
@@ -22,14 +26,13 @@ function loadCanvas() {
         socket.emit('dataLoaded');
 
 		engine.runRenderLoop(function(){
-			scene.render();
+            scene.render();
         });
         
-
         //INIT
         socket.on('init', function(entitiesPack, triggersPack){
-            initPackType(entitiesPack, 0);
-            initPackType(triggersPack, 1);
+            initPackEntity(entitiesPack);
+            initPackTrigger(triggersPack);
         });
         //UPDATE
         socket.on('update', function(entitiesPack, triggersPack){
@@ -38,9 +41,10 @@ function loadCanvas() {
         });
         //REMOVE
         socket.on('remove', function(entitiesPack, triggersPack){
-            removePackType(entitiesPack, 0);
-            removePackType(triggersPack, 1);
+            removePackEntity(entitiesPack);
+            removePackTrigger(triggersPack);
         });
+
     };
     
 	assetsManager.load();
@@ -68,6 +72,8 @@ var selfID = null;
 
 socket.on('sendSelfID', function(socketID){
     selfID = socketID;
+
+    loadGUI();
 });
 
 //LOAD WORLD
@@ -79,23 +85,54 @@ setInterval(function(){
     socket.emit('mouseMove', mousePosition);
 },100/6);
 
-function initPackType(pack, type){
+function initPackEntity(pack){
     pack.forEach(element => {
-        switch (type){
-            case 0:
-                if(!Entity.list[element.id]){
-                    let v = new Entity(element);
-                    Entity.list[v.id] = v;
-                }
-            break;
-            case 1:
-                if(!Trigger.list[element.id]){
-                    let v = new Trigger(element);
-                    Trigger.list[v.id] = v;
-                }
-            break;
+        if(!Entity.list[element.id]){
+            let v = new Entity(element);
+            Entity.list[v.id] = v;
         }
     });
+}
+
+function initPackTrigger(pack){
+    pack.forEach(element => {
+        if(!Trigger.list[element.id]){
+            let v = new Trigger(element);
+            Trigger.list[v.id] = v;
+        }
+    });
+}
+
+function removePackEntity(pack){
+    pack.forEach(element => {
+        if(Entity.list[element]){
+            Entity.list[element].body.dispose();
+            delete Entity.list[element];
+        }
+    });
+}
+                
+function removePackTrigger(pack){
+    pack.forEach(element => {
+        if(Trigger.list[element]){
+            delete Trigger.list[element].sprite.dispose();
+            delete Trigger.list[element];
+        }        
+    });
+}
+
+function updatePlayerGUI(element, v){
+    camera.position.x = element.position.x;
+    camera.position.z = element.position.z -10;
+    if(element.hp && v.currentHp)
+        if(element.hp != v.currentHp || element.mana != v.currentMana){
+            v.currentHp = element.hp;
+            v.currentMana = element.mana;
+
+            changeBarSize(v.currentHp, v.currentMana);
+        }
+
+
 }
 
 function updatePackType(pack, type){
@@ -106,11 +143,7 @@ function updatePackType(pack, type){
                 v = Entity.list[element.id];
                 if (v){
                     if (v.id == selfID){
-                        camera.position.x = element.position.x;
-                        camera.position.z = element.position.z -10;
-                        if(element.hp && v.currentHp){
-                            v.currentHp = element.hp;
-                        }
+                        updatePlayerGUI(element, v);
                     }
                 }  
             break;
@@ -135,25 +168,6 @@ function updatePackType(pack, type){
                 v.sprite.angle = -angle - Math.PI/2; 
             }
         }
-    });
-}
-
-function removePackType(pack, type){
-    pack.forEach(element => {
-        switch (type){
-            case 0:
-                if(Entity.list[element]){
-                    Entity.list[element].body.dispose();
-                    delete Entity.list[element];
-                }
-            break;
-            case 1:
-                if(Trigger.list[element]){
-                    delete Trigger.list[element].sprite.dispose();
-                    delete Trigger.list[element];
-                }
-            break;
-        }            
     });
 }
 

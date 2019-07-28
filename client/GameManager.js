@@ -11,8 +11,8 @@ class Entity {
         this.body.position.y = 0.5;
 
         if(pack.hp){
-            this.maxHp = pack.hp;
             this.currentHp = pack.hp;
+            this.currentMana = pack.mana;
         }
     }
 }
