@@ -8,6 +8,7 @@ var EnemySpawner = function(x, z, eType, weapon, world){
         id: spawnerId,
         enemyType: eType,
         weapon: weapon,
+        score: eType.score + weapon.score,
 
         position: {'x':x, 'z':z},
         currentChildren: 0,

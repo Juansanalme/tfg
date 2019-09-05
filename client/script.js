@@ -4,6 +4,7 @@ const _WIDTH  = 1280,
 var canvas, engine, scene, camera;
 var mousePosition = {x:0,y:0};
 var socket = io();
+var gameStarted = false;
 
 function loadCanvas() {
     canvas = document.getElementById('canvas');
@@ -23,12 +24,24 @@ function loadCanvas() {
     loadSprites(scene);
 
 	assetsManager.onFinish = function(){
-        socket.emit('dataLoaded');
+
+        beginGUI(startGame);
 
 		engine.runRenderLoop(function(){
             scene.render();
+
+            var fpsLabel = document.getElementById("fpsLabel");
+            fpsLabel.innerHTML = engine.getFps().toFixed() + " fps";
         });
-        
+    };
+    
+	assetsManager.load();
+}
+
+var startGame = function(){
+        gameStarted = true;
+        socket.emit('dataLoaded');
+
         //INIT
         socket.on('init', function(entitiesPack, triggersPack){
             initPackEntity(entitiesPack);
@@ -44,10 +57,6 @@ function loadCanvas() {
             removePackEntity(entitiesPack);
             removePackTrigger(triggersPack);
         });
-
-    };
-    
-	assetsManager.load();
 }
 
 //SCENE
@@ -57,7 +66,7 @@ var createScene = function () {
     engine.enableOfflineSupport = false;
     scene.clearColor = new BABYLON.Color3.White();
 
-    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(0,30,-10), scene);
+    camera = new BABYLON.FreeCamera("Camera", new BABYLON.Vector3(0,25,-10), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
 
     let light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
@@ -70,9 +79,13 @@ var createScene = function () {
 //GAME DATA
 var selfID = null;
 
+socket.on('gameOver', function(score){
+    gameStarted = false;
+    showFinalScore(score);
+});
+
 socket.on('sendSelfID', function(socketID){
     selfID = socketID;
-
     loadGUI();
 });
 
@@ -133,6 +146,11 @@ function updatePlayerGUI(element, v){
     v.manaPotions = element.manaPotions;
     changePotionCount(v.hpPotions, v.manaPotions);
 
+    v.score = element.score;
+    changeScore(v.score);
+
+    v.level = element.level;
+    changeLevel(v.level);
 }
 
 function updatePackType(pack, type){
@@ -189,16 +207,22 @@ document.onmousemove = function(evt){
 }
 
 function keyEvent(evt, bool) {
-    if     (evt.keyCode === 68) socket.emit('keyPress', {inputId:'right', state:bool}); //d
-    else if(evt.keyCode === 83) socket.emit('keyPress', {inputId:'down',  state:bool}); //s
-    else if(evt.keyCode === 65) socket.emit('keyPress', {inputId:'left',  state:bool}); //a
-    else if(evt.keyCode === 87) socket.emit('keyPress', {inputId:'up',    state:bool}); //w
-    else if(evt.keyCode === 69) socket.emit('keyPress', {inputId:'heal',  state:bool}); //e
-    else if(evt.keyCode === 82) socket.emit('keyPress', {inputId:'mana',  state:bool}); //r
+    if(gameStarted){
+        if     (evt.keyCode === 68) socket.emit('keyPress', {inputId:'right', state:bool}); //d
+        else if(evt.keyCode === 83) socket.emit('keyPress', {inputId:'down',  state:bool}); //s
+        else if(evt.keyCode === 65) socket.emit('keyPress', {inputId:'left',  state:bool}); //a
+        else if(evt.keyCode === 87) socket.emit('keyPress', {inputId:'up',    state:bool}); //w
+        else if(evt.keyCode === 69) socket.emit('keyPress', {inputId:'heal',  state:bool}); //e
+        else if(evt.keyCode === 82) socket.emit('keyPress', {inputId:'mana',  state:bool}); //r
+        else if(evt.keyCode === 32) socket.emit('keyPress', {inputId:'special', state:bool}); //spacebar
+
+    }
 }
 
 function mouseEvent(bool) {
+    if(gameStarted){
     socket.emit('keyPress', {inputId:'leftClick', state:bool});
+    }
 }
 
 function getMousePosition(evt) {

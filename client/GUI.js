@@ -1,17 +1,50 @@
 var hpbar, manabar;
 var hptext, manatext;
+var button, background;
+var scoretext, leveltext;
 var advancedTexture;
 
-function loadGUI(){
-
+function beginGUI(startGame){
     advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+    background = new BABYLON.GUI.Image("", "textures/gamebackground.jpg");;
+    advancedTexture.addControl(background);
+
+    button = BABYLON.GUI.Button.CreateImageOnlyButton("", "textures/startbutton.png");
+    button.width = 0.2;
+    button.height = "60px";
+    button.color = "black";
+    button.background = "white";
+
+    let toDelete = false;
+
+    button.onPointerDownObservable.add(function() {
+        toDelete = true;
+    });
+
+    button.onPointerUpObservable.add(function() {
+        if(toDelete){            
+            startGame();
+        }
+    });
+
+    
+    advancedTexture.addControl(button);
+}
+
+function loadGUI(){
     loadBars();
     loadPotions();
     loadWeapon();
+    loadScore();
+    loadLevel();
+
+    background.dispose();
+    button.dispose();
 }
 
 function loadBars(){
-    var blackbar = new BABYLON.GUI.Image("", "textures/blackbar.png");;
+    let blackbar = new BABYLON.GUI.Image("", "textures/blackbar.png");;
     blackbar.height = 0.1;
     blackbar.width = 0.4;
     blackbar.top = "320px";
@@ -29,7 +62,7 @@ function loadBars(){
     manabar.top = "320px";
     advancedTexture.addControl(manabar);
 
-    var emptybar = new BABYLON.GUI.Image("", "textures/emptybar.png");
+    let emptybar = new BABYLON.GUI.Image("", "textures/emptybar.png");
     emptybar.height = 0.1;
     emptybar.width = 0.4;
     emptybar.top = "320px";
@@ -37,7 +70,7 @@ function loadBars(){
 }
 
 function loadPotions(){
-    var hpPotion, manaPotion;
+    let hpPotion, manaPotion;
     hpPotion = new BABYLON.GUI.Image("", "textures/32/healpotion.png");
     manaPotion = new BABYLON.GUI.Image("", "textures/32/manapotion.png");
 
@@ -66,6 +99,33 @@ function loadPotions(){
 
 function loadWeapon(){
 
+}
+
+function loadScore(){
+    scoretext = new BABYLON.GUI.TextBlock();    
+    scoretext.text = "0";
+    scoretext.color = "white";
+    scoretext.outlineWidth = 4;
+    scoretext.outlineColor = "black";
+    scoretext.fontSize = 72;
+    
+    scoretext.textHorizontalAlignment = 0;
+    scoretext.top = "-300px";
+    scoretext.left = "5px";
+    advancedTexture.addControl(scoretext);
+}
+
+function loadLevel() {
+    leveltext = new BABYLON.GUI.TextBlock();    
+    leveltext.text = "Lv: 1";
+    leveltext.color = "white";
+    leveltext.outlineWidth = 4;
+    leveltext.outlineColor = "black";
+    leveltext.fontSize = 48;
+    
+    leveltext.top = "-300px";
+    leveltext.left = "5px";
+    advancedTexture.addControl(leveltext); 
 }
 
 function changeBarSize(hp, mana){
@@ -101,4 +161,23 @@ function changePotionCount(hp, mana){
 
     hptext.text = hp.toString();
     manatext.text = mana.toString();
+}
+
+function changeScore(points){
+    scoretext.text = points.toString();
+}
+
+function changeLevel(level){
+    leveltext.text = "Lv. " + level.toString();
+}
+
+function showFinalScore(score){
+    let final = new BABYLON.GUI.TextBlock();    
+    final.text = "Final Score: " + score.toString();
+    final.color = "white";
+    final.outlineWidth = 4;
+    final.outlineColor = "black";
+    final.fontSize = 48;
+    
+    advancedTexture.addControl(final);   
 }

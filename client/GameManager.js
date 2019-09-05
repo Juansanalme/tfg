@@ -15,6 +15,8 @@ class Entity {
             this.currentMana = pack.mana;
             this.hpPotions = 0;
             this.manaPotions = 0;
+            this.score = 0;
+            this.level = 1;
         }
     }
 }

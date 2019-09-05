@@ -16,6 +16,7 @@ class Enemy {
 
         //Type properties
         self.weapon = nest.weapon;
+        self.score = nest.score;
         var
         _PlayerDetectDistance = nest.enemyType.playerDetectDistance,
         _RoamMaxDistance = nest.enemyType.roamMaxDistance,
@@ -65,7 +66,20 @@ class Enemy {
             if (self.currentHP <= 0){
                 self.stateMachine.setState(dead);
                 self.toRemove = true;
+
+                self.giveScore();
             }
+        }
+
+        self.giveScore = function(){
+            for(let i in Entity.list){             
+                if (Entity.list[i].isPlayer){
+                    let distance = world.distanceBetweenTwoPoints(self.position, Entity.list[i].position);
+                    if (distance < _PlayerDetectDistance * 1.5){
+                        Entity.list[i].getScore(self.score);
+                    }
+                }
+            }            
         }
 
         self.dropLoot = function(){
@@ -108,7 +122,7 @@ class Enemy {
             let bestDistance = 0;
             self.closestPlayerPosition = false;
             for(let i in Entity.list){             
-                if (Entity.list[i].isPlayer){
+                if (Entity.list[i].isPlayer && Entity.list[i].isAlive){
                     let distance = world.distanceBetweenTwoPoints(self.position, Entity.list[i].position);
                     if (bestDistance == 0 || distance > bestDistance){
                         bestDistance = distance;

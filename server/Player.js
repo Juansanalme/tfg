@@ -11,16 +11,21 @@ class Player {
         self.isPlayer = true;
 
         //CLASS PROPERTIES
-        self.input = {d:false, a:false, w:false, s:false, mouse:false, e:false, r:false};
+        self.input = {d:false, a:false, w:false, s:false, mouse:false, e:false, r:false, special:false};
         self.mousePosition = {x:0, y:0};
         self.attackDamage = 25;
+        self.movSpeed = 10;
         self.weapon = weapon;
         self.shootingCD = true;
         self.cooldownInterval;
         self.itemIntervalHP, self.itemIntervalMana;
         self.healPotionCD = self.manaPotionCD = true;
+        self.specialInterval, self.specialCD = true;
         self.healPotions = 0;
         self.manaPotions = 0;
+        self.score = 0;
+        self.level = 1;
+        self.isAlive = true;
 
         //p2 BODY
         self.circleBody = new p2.Body({
@@ -37,6 +42,7 @@ class Player {
             self.calculateAngle();
             self.shootingCheck();
             self.potionCheck();
+            self.specialCheck();
         };
         
         self.shootBullet = function(angle){
@@ -70,9 +76,20 @@ class Player {
             }
         }
 
-        self.die = function(){
-            
+        self.getScore = function(points){
+            self.score += points;
+            if(self.score >= self.level * 10){
+                self.levelUp();
+            }
         }
+
+        self.levelUp = function(){
+            self.level++;
+            self.recoverHP(); self.recoverHP();
+            self.recoverMana(); self.recoverMana();
+        }
+
+        self.die = function(){}
 
         self.changeWeapon = function(weaponLoot){
             self.weapon = weaponLoot;
@@ -111,7 +128,6 @@ class Player {
         }
 
         self.potionCheck = function(){
-
             if (self.input.e)
                 if (self.healPotionCD && self.healPotions > 0){
                     self.healPotionCD = false;
@@ -137,26 +153,40 @@ class Player {
                 }
         }
 
+        self.specialCheck = function(){            
+            if (self.input.special && self.weapon.activeSkill)
+                if (self.specialCD && self.currentMana > 24){
+                    self.specialCD = false;
+                    self.currentMana -= 20;
+                    self.weapon.activeSkill(Bullet, self, world);
+                    
+                    self.specialInterval = setInterval(() => {
+                        self.specialCD = true;
+                        clearInterval(self.specialInterval);
+                    }, 1000 * 3);
+                }
+        }
+
         self.updateSpeed = function(){
             if (self.input.d)
-                self.circleBody.velocity[0] = 10;
+                self.circleBody.velocity[0] = self.movSpeed;
             else if (self.input.a)
-                self.circleBody.velocity[0] = -10;
+                self.circleBody.velocity[0] = -self.movSpeed;
             else
                 self.circleBody.velocity[0] = 0;
 
             if (self.input.w)
-                self.circleBody.velocity[1] = 10;
+                self.circleBody.velocity[1] = self.movSpeed;
             else if (self.input.s)
-                self.circleBody.velocity[1] = -10;
+                self.circleBody.velocity[1] = -self.movSpeed;
             else
                 self.circleBody.velocity[1] = 0;
 
             if(self.circleBody.velocity[0] != 0 && self.circleBody.velocity[1] != 0){
                 let signX = Math.sign(self.circleBody.velocity[0]);
                 let signY = Math.sign(self.circleBody.velocity[1]);
-                self.circleBody.velocity[0] = signX * Math.sqrt(50);
-                self.circleBody.velocity[1] = signY * Math.sqrt(50);
+                self.circleBody.velocity[0] = signX * Math.sqrt(self.movSpeed * self.movSpeed / 2);
+                self.circleBody.velocity[1] = signY * Math.sqrt(self.movSpeed * self.movSpeed / 2);
             }
         };
 
@@ -180,6 +210,8 @@ class Player {
                 mana: self.currentMana,
                 hpPotions: self.healPotions,
                 manaPotions: self.manaPotions,
+                score: self.score,
+                level: self.level
             }
         }
 
@@ -193,7 +225,7 @@ class Player {
 
     //STATIC METHODS
     static onConnect(socket, weapon, allTriggers, World) {
-        let player = new Player(socket.id, 22, 22, weapon, World);
+        let player = new Player(socket.id, 100, 100, weapon, World);
         
         socket.on('keyPress', function (data) {
             if (data.inputId === 'leftClick')
@@ -210,12 +242,19 @@ class Player {
                 player.input.e = data.state;
             else if (data.inputId === 'mana')
                 player.input.r = data.state;
+            else if (data.inputId === 'special')
+                player.input.special = data.state;
         });
         socket.on('mouseMove', function (data) {
             player.mousePosition.x = data.x;
             player.mousePosition.y = data.y;
         });
 
+        player.die = function(){
+            socket.emit('gameOver', player.score);
+            player.input.d = player.input.a = player.input.w = player.s = false;
+            player.isAlive = false;
+        }
         socket.emit('sendSelfID', socket.id);
         socket.emit('loadWorld', World.blocks, World.map);
         socket.emit('init', Entity.getAllEntities(), allTriggers);

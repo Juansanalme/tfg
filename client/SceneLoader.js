@@ -1,5 +1,5 @@
 
-var wizard, griffin, werwolf, dragon, tree;
+var wizard, griffin, werwolf, dragon, tree, winds;
 var spriteManSword, spriteManLance, spriteManAxe, spriteManArrow, spriteManDagger, spriteManMagic, spriteManBow, spriteManStaff, spriteManHealitem, spriteManManaitem, spriteHealpotion, spriteManManapotion;
 
 function loadMeshes(assetsManager){
@@ -49,10 +49,10 @@ function loadSprites(scene){
     spriteManMagic = new BABYLON.SpriteManager("", './textures/64/iceshard.png', 1000, {width: 64, height: 64}, scene);
     spriteManBow = new BABYLON.SpriteManager("", './textures/64/bow.png', 1000, {width: 64, height: 64}, scene);
     spriteManStaff = new BABYLON.SpriteManager("", './textures/64/staff.png', 1000, {width: 64, height: 64}, scene);
-    spriteManHealitem = new BABYLON.SpriteManager("", './textures/32/healitem.png', 1000, {width: 32, height: 32}, scene);
-    spriteManManaitem = new BABYLON.SpriteManager("", './textures/32/manaitem.png', 1000, {width: 32, height: 32}, scene);
-    spriteHealpotion = new BABYLON.SpriteManager("", './textures/32/healpotion.png', 1000, {width: 32, height: 32}, scene);
-    spriteManManapotion = new BABYLON.SpriteManager("", './textures/32/manapotion.png', 1000, {width: 32, height: 32}, scene);
+    spriteManHealitem = new BABYLON.SpriteManager("", './textures/32/healitem.png', 1000, {width: 64, height: 64}, scene);
+    spriteManManaitem = new BABYLON.SpriteManager("", './textures/32/manaitem.png', 1000, {width: 64, height: 64}, scene);
+    spriteHealpotion = new BABYLON.SpriteManager("", './textures/32/healpotion.png', 1000, {width: 64, height: 64}, scene);
+    spriteManManapotion = new BABYLON.SpriteManager("", './textures/32/manapotion.png', 1000, {width: 64, height: 64}, scene);
 }
 
 function getSprite(name){
@@ -73,76 +73,61 @@ function getSprite(name){
 }
 
 function loadWorld(worldBlocks, worldMap, scene){
-    
+
     let width = worldMap.groundWidth;
     let height = worldMap.groundHeight;
 
-    let ground0 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
-    let ground1 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
-    let ground2 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
-    let ground3 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
-    let ground4 = BABYLON.MeshBuilder.CreateGround("ground", {height:height , width: width}, scene);
-    let myMaterial0 = new BABYLON.StandardMaterial("myMaterial", scene);
-    let myMaterial1 = new BABYLON.StandardMaterial("myMaterial", scene);
-    let myMaterial2 = new BABYLON.StandardMaterial("myMaterial", scene);
-    let myMaterial3 = new BABYLON.StandardMaterial("myMaterial", scene);
-    let myMaterial4 = new BABYLON.StandardMaterial("myMaterial", scene);
-    let waterT = new BABYLON.Texture("./textures/waterTile.jpg", scene);
-    let grassT = new BABYLON.Texture("./textures/grassTile.jpg", scene);
-    let sandT = new BABYLON.Texture("./textures/sandTile.jpg", scene);
-    let plankT = new BABYLON.Texture("./textures/plankTile.jpg", scene);
-    let pathT = new BABYLON.Texture("./textures/pathTile.jpg", scene);
-
-    myMaterial0.diffuseTexture = myMaterial0.specularTexture = myMaterial0.emissiveTexture = myMaterial0.ambientTexture = waterT;
-    myMaterial1.diffuseTexture = myMaterial1.specularTexture = myMaterial1.emissiveTexture = myMaterial1.ambientTexture = grassT;
-    myMaterial2.diffuseTexture = myMaterial2.specularTexture = myMaterial2.emissiveTexture = myMaterial2.ambientTexture = sandT;
-    myMaterial3.diffuseTexture = myMaterial3.specularTexture = myMaterial3.emissiveTexture = myMaterial3.ambientTexture = plankT;
-    myMaterial4.diffuseTexture = myMaterial4.specularTexture = myMaterial4.emissiveTexture = myMaterial4.ambientTexture = pathT;
-
-    ground0.material = myMaterial0;
-    ground1.material = myMaterial1;
-    ground2.material = myMaterial2;
-    ground3.material = myMaterial3;
-    ground4.material = myMaterial4;
-
-    let y = worldMap.mapMatrix.length - 1;
-    for(let i in worldMap.mapMatrix){
-
-        for(let j in worldMap.mapMatrix[i]){
-            
-            let newInstance;
-
-            switch(worldMap.mapMatrix[i][j]){
-                case 0: 
-                    newInstance = ground0.createInstance();
-                    break;
-                case 1:
-                    newInstance = ground1.createInstance();
-                    break;
-                case 2:
-                    newInstance = ground2.createInstance();
-                    break;
-                case 3:
-                    newInstance = ground3.createInstance();
-                    break;
-                case 4:
-                    newInstance = ground4.createInstance();
-                    break;
-            }
-            
-            newInstance.position.x = j * height + height/2;
-            newInstance.position.z = y * width  + width/2;
-        }
-        y--;
-    }
-
-    ground0.isVisible = ground1.isVisible = ground2.isVisible = ground3.isVisible = ground4.isVisible = false;
-
+    loadQuadrant(width, height);
     worldBlocks.forEach(element => {
-        //let block = BABYLON.MeshBuilder.CreateBox("box", {height: element.h, width: element.w, depth: element.d}, scene);
+        //let block = BABYLON.MeshBuilder.CreateBox("", {height: element.h, width: element.w, depth: element.d}, scene);
         let block = getMesh("tree");
         block.position.x = element.pX;
         block.position.z = element.pZ;
         block.position.y = element.h/2;
     });
+}
+
+function loadQuadrant(w, h){
+    let img1 = new Image();
+    
+    img1.onload = function(){
+        let img2 = new Image();
+        img2.onload = function(){
+
+
+
+            for(let i = 1; i < 5; i++){
+                let ground = BABYLON.MeshBuilder.CreateGround("", {height:h * 50 , width:w * 50}, scene);
+                let mat = new BABYLON.StandardMaterial("", scene);
+                let tex = new BABYLON.Texture("./textures/q" + i + ".png", scene);
+                mat.diffuseTexture = mat.specularTexture = mat.emissiveTexture = mat.ambientTexture = tex;
+                ground.material = mat;
+        
+                switch (i) {
+                    case 1:
+                        ground.position.x = 25*2;
+                        ground.position.z = 75*2;         
+                        break;
+                    case 2:
+                        ground.position.x = 25*2;
+                        ground.position.z = 25*2; 
+                        break;
+                    case 3:
+                        ground.position.x = 75*2;
+                        ground.position.z = 75*2; 
+                        break;
+                    case 4:
+                        ground.position.x = 75*2;
+                        ground.position.z = 25*2; 
+                        break;
+                }
+            }
+
+
+
+
+        }
+        img2.src = './textures/q2.png';      
+    }
+    img1.src = './textures/q1.png';      
 }

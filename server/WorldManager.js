@@ -1,4 +1,5 @@
 const p2 = require('p2');
+const Map = require('./WorldMap.js');
 const EnemySpawner = require('./EnemySpawner');
 const EnemyType = require('./EnemyManager');
 const Weapon = require('./WeaponManager');
@@ -10,27 +11,7 @@ var _World = new p2.World({
 });
 
 _World.blocks = [];
-
-const map = {
-    groundHeight:4,
-    groundWidth:4,
-    mapMatrix:[
-        [0,0,3,3,3,3,3,4,3,3,3,0,0],
-        [0,3,3,1,1,1,1,1,1,4,1,3,0],
-        [3,3,1,4,1,1,1,1,1,1,1,3,3],
-        [3,1,1,1,1,1,1,1,1,1,1,1,3],
-        [3,1,1,1,1,1,1,1,1,1,4,1,3],
-        [3,1,1,1,1,1,1,1,1,1,1,2,3],
-        [3,1,1,1,1,1,4,1,1,1,1,2,3],
-        [3,1,4,1,1,4,4,1,1,1,2,2,3],
-        [3,1,1,1,1,1,1,1,1,2,2,2,3],
-        [3,3,1,1,1,1,1,1,1,4,2,2,3],
-        [0,3,1,1,1,1,1,1,2,2,2,2,3],
-        [0,3,3,4,4,1,2,2,2,2,2,3,3],
-        [0,0,3,3,3,3,3,3,3,3,3,3,0],
-    ],
-}
-
+var map = Map;
 const blocks = {
     shape:'',
     height:'',
@@ -38,24 +19,24 @@ const blocks = {
     posX:'',
     posZ:'',
 }
+_World.map = map;
 
 const enemySpawners = [
-    {x:0,z:0,type:'generic',weapon:'sword'},
+    {x:50,z:50,type:'generic',weapon:'sword'},
     
-    {x:0,z:30,type:'generic',weapon:'lance'},
+    {x:150,z:50,type:'generic',weapon:'lance'},
     
-    {x:0,z:10,type:'wolf',weapon:'axe'},
-    {x:30,z:30,type:'wolf',weapon:'bow'},
+    {x:75,z:75,type:'wolf',weapon:'axe'},
+    {x:125,z:75,type:'wolf',weapon:'bow'},
     
-    {x:30,z:0,type:'generic',weapon:'dagger'},
-    {x:60,z:0,type:'generic',weapon:'sword'},
+    {x:50,z:150,type:'generic',weapon:'dagger'},
+    {x:150,z:150,type:'generic',weapon:'sword'},
 ]
 
 _World.load = function (){
 
     // GROUNDS
     console.log('Generating terrain...');
-    _World.map = map;
 
     // BLOCKS
     let mass, pX, pZ, h, d, w;
@@ -64,10 +45,10 @@ _World.load = function (){
     d = map.groundHeight;//block depth/2d height
     h = 1;//3d model height
 
-    let y = map.mapMatrix.length - 1;
-    for(let i in map.mapMatrix){
-        for(let j in map.mapMatrix[i]){
-            if(map.mapMatrix[i][j] == 4){
+    let y = map.blocks.length - 1;
+    for(let i in map.blocks){
+        for(let j in map.blocks[i]){
+            if(map.blocks[i][j] == 3){
                 //Blocks
                 pX = j * d + d/2;
                 pZ = y * w  + w/2;
@@ -78,7 +59,6 @@ _World.load = function (){
                 staticBody.addShape(bodyShape);
                 _World.addBody(staticBody);
                 _World.blocks.push({'pX':pX, 'pZ':pZ, 'h':h ,'d':d, 'w':w});
-
             }
         }
         y--;
