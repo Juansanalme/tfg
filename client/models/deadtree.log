@@ -11,16 +11,14 @@ Exporter version: 5.6.4, Blender version: 2.79 (sub 0)
 		texture directory   :  C:\Users\Juan\Downloads\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  tree_2.000
-		processing begun of Standard material:  tree_3_mat
-			Diffuse texture found "Texture.004"
-				Image texture found, type:  diffuseTexture, mapped using: "UVMap"
-		num positions      :  293
-		num normals        :  293
-		num uvs            :  586
+	processing begun of mesh:  dead_tree.001
+		processing begun of Standard material:  wood_3_mat
+		num positions      :  365
+		num normals        :  365
+		num uvs            :  730
 		num uvs2           :  0
 		num colors         :  0
-		num indices        :  495
+		num indices        :  780
 	processing begun of light (POINT):  Point.006
 	processing begun of light (POINT):  Point.005
 	processing begun of light (POINT):  Point.003
@@ -30,4 +28,4 @@ Exporter version: 5.6.4, Blender version: 2.79 (sub 0)
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0541 secs
+elapsed time:  0 min, 0.0589 secs

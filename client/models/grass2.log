@@ -8,22 +8,24 @@ Exporter version: 5.6.4, Blender version: 2.79 (sub 0)
 		UVs Precision       :  3
 		Vert Color Precision:  3
 		Mat Weight Precision:  2
-		texture directory   :  C:\Users\Juan\Documents\GitHub\tfg\client\models\
+		texture directory   :  C:\Users\Juan\Downloads\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  3Hdragon
-		processing begun of Standard material:  3Hdragon
-			Diffuse texture found "Texture.004"
-				Image texture found, type:  diffuseTexture, mapped using: "UVMap"
-		num positions      :  1667
-		num normals        :  1667
-		num uvs            :  3334
+	processing begun of mesh:  grass_2.001
+		processing begun of Standard material:  autumn_yellow_mat
+		num positions      :  60
+		num normals        :  60
+		num uvs            :  0
 		num uvs2           :  0
 		num colors         :  0
-		num indices        :  3618
-	processing begun of light (SUN):  Hemi.001
-	processing begun of light (HEMI):  Hemi
+		num indices        :  150
+	processing begun of light (POINT):  Point.006
+	processing begun of light (POINT):  Point.005
+	processing begun of light (POINT):  Point.003
+	processing begun of light (POINT):  Point.001
+	processing begun of light (POINT):  Point
+	processing begun of light (SUN):  Sun
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.2119 secs
+elapsed time:  0 min, 0.0251 secs

@@ -22,15 +22,15 @@ const blocks = {
 _World.map = map;
 
 const enemySpawners = [
-    {x:50,z:50,type:'generic',weapon:'sword'},
+    {x:70,z:80,type:'generic',weapon:'sword'},
     
-    {x:150,z:50,type:'generic',weapon:'lance'},
+    {x:150,z:80,type:'generic',weapon:'lance'},
     
-    {x:75,z:75,type:'wolf',weapon:'axe'},
-    {x:125,z:75,type:'wolf',weapon:'bow'},
+    {x:75,z:200,type:'wolf',weapon:'axe'},
+    {x:150,z:190,type:'wolf',weapon:'bow'},
     
-    {x:50,z:150,type:'generic',weapon:'dagger'},
-    {x:150,z:150,type:'generic',weapon:'sword'},
+    {x:90,z:150,type:'generic',weapon:'dagger'},
+    {x:150,z:210,type:'generic',weapon:'sword'},
 ]
 
 _World.load = function (){
@@ -48,17 +48,22 @@ _World.load = function (){
     let y = map.blocks.length - 1;
     for(let i in map.blocks){
         for(let j in map.blocks[i]){
-            if(map.blocks[i][j] == 3){
-                //Blocks
-                pX = j * d + d/2;
-                pZ = y * w  + w/2;
+            if(map.blocks[i][j] > 1){
 
-                // Create a body. Add a shape to the body. and add the body to the world.
-                let staticBody = new p2.Body({mass:mass, position:[pX,pZ]});
-                let bodyShape = new p2.Box({height:d, width:w});
-                staticBody.addShape(bodyShape);
-                _World.addBody(staticBody);
-                _World.blocks.push({'pX':pX, 'pZ':pZ, 'h':h ,'d':d, 'w':w});
+                if(map.blocks[i][j] < 6){
+                    //Blocks
+                    pX = j * d + d/2;
+                    pZ = y * w  + w/2;
+
+                    // Create a body. Add a shape to the body. and add the body to the world.
+                    let staticBody = new p2.Body({mass:mass, position:[pX,pZ]});
+                    let bodyShape = new p2.Box({height:d, width:w});
+                    staticBody.addShape(bodyShape);
+                    _World.addBody(staticBody);
+                }
+
+                if(map.blocks[i][j] > 2 && map.blocks[i][j] < 6)
+                    _World.blocks.push({'pX':pX, 'pZ':pZ, 'h':h ,'d':d, 'w':w, 'id': map.blocks[i][j]});
             }
         }
         y--;

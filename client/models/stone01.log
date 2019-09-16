@@ -8,30 +8,20 @@ Exporter version: 5.6.4, Blender version: 2.79 (sub 0)
 		UVs Precision       :  3
 		Vert Color Precision:  3
 		Mat Weight Precision:  2
-		texture directory   :  C:\Users\Juan\Documents\GitHub\tfg\client\models\
+		texture directory   :  C:\Users\Juan\Downloads\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  sword 
-		processing begun of Standard material:  Material
+	processing begun of mesh:  stone01
+		processing begun of Standard material:  color
 			Diffuse texture found "Texture"
 				Image texture found, type:  diffuseTexture, mapped using: "UVMap"
-		num positions      :  208
-		num normals        :  208
-		num uvs            :  416
+		num positions      :  76
+		num normals        :  76
+		num uvs            :  152
 		num uvs2           :  0
 		num colors         :  0
-		num indices        :  462
-	processing begun of mesh:  skeleton
-		registered as also a user of material:  Material
-		num positions      :  1663
-		num normals        :  1663
-		num uvs            :  3326
-		num uvs2           :  0
-		num colors         :  0
-		num indices        :  2982
-	processing begun of light (HEMI):  Sun.001
-	processing begun of light (SUN):  Sun
+		num indices        :  144
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.2714 secs
+elapsed time:  0 min, 0.022 secs

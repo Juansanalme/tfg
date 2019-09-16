@@ -46,7 +46,7 @@ class Player {
         };
         
         self.shootBullet = function(angle){
-            new Bullet(angle, self.position.x, self.position.z, false, self.weapon, self.attackDamage, world);
+            if(self.isAlive) new Bullet(angle, self.position.x, self.position.z, false, self.weapon, self.attackDamage, world);
         };
 
         self.shootingCheck = function(){
@@ -89,7 +89,9 @@ class Player {
             self.recoverMana(); self.recoverMana();
         }
 
-        self.die = function(){}
+        self.die = function(){
+
+        }
 
         self.changeWeapon = function(weaponLoot){
             self.weapon = weaponLoot;
@@ -155,7 +157,7 @@ class Player {
 
         self.specialCheck = function(){            
             if (self.input.special && self.weapon.activeSkill)
-                if (self.specialCD && self.currentMana > 24){
+                if (self.specialCD && self.currentMana >= 20){
                     self.specialCD = false;
                     self.currentMana -= 20;
                     self.weapon.activeSkill(Bullet, self, world);
@@ -225,7 +227,7 @@ class Player {
 
     //STATIC METHODS
     static onConnect(socket, weapon, allTriggers, World) {
-        let player = new Player(socket.id, 100, 100, weapon, World);
+        let player = new Player(socket.id, 127, 127, weapon, World);
         
         socket.on('keyPress', function (data) {
             if (data.inputId === 'leftClick')
@@ -252,7 +254,8 @@ class Player {
 
         player.die = function(){
             socket.emit('gameOver', player.score);
-            player.input.d = player.input.a = player.input.w = player.s = false;
+            player.input.d = player.input.a = player.input.w = player.s = player.input.mouse = false;
+            player.circleBody.velocity[0] = player.circleBody.velocity[1] = 0;
             player.isAlive = false;
         }
         socket.emit('sendSelfID', socket.id);
