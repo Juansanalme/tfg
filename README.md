@@ -13,3 +13,6 @@
 - Apuntar y disparar: Ratón y click izquierdo
 
 Crédito a los autores de los modelos 3D
+- https://sketchfab.com/VitSh
+- https://sketchfab.com/Inuciian
+- https://opengameart.org/content/lpc-tile-atlas
