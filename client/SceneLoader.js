@@ -1,5 +1,5 @@
 
-var wizard, griffin, werwolf, tree, rock, deadtree, grass1, grass2;
+var wizard, griffin, werwolf, skel, imp,tree, rock, deadtree, grass1, grass2;
 var spriteManSword, spriteManLance, spriteManAxe, spriteManArrow, spriteManDagger, spriteManMagic, spriteManBow, spriteManStaff, spriteManHealitem, spriteManManaitem, spriteHealpotion, spriteManManapotion;
 
 function loadMeshes(assetsManager){
@@ -17,6 +17,16 @@ function loadMeshes(assetsManager){
     wolfMT.onSuccess = function (task) {
         werwolf = wolfMT.loadedMeshes[0];
         werwolf.isVisible = false;
+    }
+    let skelMT = assetsManager.addMeshTask("","","./models/","skel.babylon");
+    skelMT.onSuccess = function (task) {
+        skel = skelMT.loadedMeshes[1];
+        skel.isVisible = false;
+    }
+    let impMT = assetsManager.addMeshTask("","","./models/","imp.babylon");
+    impMT.onSuccess = function (task) {
+        imp = impMT.loadedMeshes[0];
+        imp.isVisible = false;
     }
     let tree1MT = assetsManager.addMeshTask("","","./models/","tree.babylon");
     tree1MT.onSuccess = function (task) {
@@ -50,6 +60,8 @@ function getMesh(name){
         case "wizard": return wizard.createInstance();
         case "griffin": return griffin.createInstance();
         case "werwolf": return werwolf.createInstance();
+        case "skel": return skel.createInstance();
+        case "imp": return imp.createInstance();
         case "tree1": return tree.createInstance();
         case "tree2": return deadtree.createInstance();
         case "rock": return rock.createInstance();
@@ -131,7 +143,7 @@ function loadQuadrant(w, h){
         //img2.onload = function(){
             let ground = BABYLON.MeshBuilder.CreateGround("", {height:h * 128 , width:w * 128}, scene);
             let mat = new BABYLON.StandardMaterial("", scene);
-            let tex = new BABYLON.Texture("./textures/sinnombre.png", scene);
+            let tex = new BABYLON.Texture("./textures/worldmap.png", scene);
             mat.diffuseTexture = mat.specularTexture = mat.emissiveTexture = mat.ambientTexture = tex;
             ground.material = mat;
 

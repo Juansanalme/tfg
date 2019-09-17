@@ -26,6 +26,7 @@ function loadCanvas() {
 	assetsManager.onFinish = function(){
 
         beginGUI(startGame);
+        var music = new BABYLON.Sound("Music", "music.mp3", scene, null, { loop: true, autoplay: true });
 
 		engine.runRenderLoop(function(){
             scene.render();

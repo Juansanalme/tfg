@@ -13,22 +13,27 @@ var BaseEnemy = function(){
     return self;
 }
 
-var Generic = BaseEnemy();
-Generic.id = 1;
-Generic.model = "griffin";
-Generic.score = 1;
+var Griffin = BaseEnemy();
+Griffin.id = 1;
+Griffin.model = "griffin";
+Griffin.score = 1;
 
 var Wolf = BaseEnemy();
 Wolf.id = 2;
 Wolf.model = "werwolf";
 Wolf.score = 2;
 
-var WindS = BaseEnemy();
-WindS.id = 3;
-WindS.model = "Wind_Serpent";
-WindS.score = 3;
+var Skel = BaseEnemy();
+Skel.id = 3;
+Skel.model = "skel";
+Skel.score = 2;
+
+var Imp = BaseEnemy();
+Imp.id = 4;
+Imp.model = "imp";
+Imp.score = 2;
 
 
 //EXPORTS
-BaseEnemy.list = {generic:Generic, wolf:Wolf, winds:WindS};
+BaseEnemy.list = {griffin:Griffin, wolf:Wolf, skel:Skel, imp:Imp};
 module.exports = BaseEnemy.list;

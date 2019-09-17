@@ -7,7 +7,7 @@ var advancedTexture;
 function beginGUI(startGame){
     advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-    background = new BABYLON.GUI.Image("", "textures/gamebackground.jpg");;
+    background = new BABYLON.GUI.Image("", "textures/gamebackground.png");;
     advancedTexture.addControl(background);
 
     button = BABYLON.GUI.Button.CreateImageOnlyButton("", "textures/startbutton.png");
@@ -15,6 +15,7 @@ function beginGUI(startGame){
     button.height = "60px";
     button.color = "black";
     button.background = "white";
+    button.top = "40px";
 
     let toDelete = false;
 

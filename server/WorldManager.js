@@ -22,15 +22,17 @@ const blocks = {
 _World.map = map;
 
 const enemySpawners = [
-    {x:70,z:80,type:'generic',weapon:'sword'},
-    
-    {x:150,z:80,type:'generic',weapon:'lance'},
+    {x:70,z:80,type:'griffin',weapon:'sword'},    
+    {x:150,z:80,type:'griffin',weapon:'lance'},
     
     {x:75,z:200,type:'wolf',weapon:'axe'},
     {x:150,z:190,type:'wolf',weapon:'bow'},
     
-    {x:90,z:150,type:'generic',weapon:'dagger'},
-    {x:150,z:210,type:'generic',weapon:'sword'},
+    {x:90,z:150,type:'skel',weapon:'dagger'},
+    {x:150,z:210,type:'skel',weapon:'sword'},
+
+    {x:80,z:130,type:'imp',weapon:'dagger'},
+    {x:80,z:180,type:'imp',weapon:'sword'},
 ]
 
 _World.load = function (){
