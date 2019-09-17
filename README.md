@@ -16,3 +16,4 @@ Crédito a los autores de los modelos 3D
 - https://sketchfab.com/VitSh
 - https://sketchfab.com/Inuciian
 - https://opengameart.org/content/lpc-tile-atlas
+- https://www.youtube.com/watch?v=HI7egq3SnIA
