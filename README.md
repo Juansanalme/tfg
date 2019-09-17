@@ -12,7 +12,7 @@
 - Magia: Barra espaciadora
 - Apuntar y disparar: Ratón y click izquierdo
 
-Crédito a los autores de los modelos 3D
+Crédito al contenido de terceros
 - https://sketchfab.com/VitSh
 - https://sketchfab.com/Inuciian
 - https://opengameart.org/content/lpc-tile-atlas
