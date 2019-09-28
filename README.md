@@ -12,6 +12,8 @@
 - Magia: Barra espaciadora
 - Apuntar y disparar: Ratón y click izquierdo
 
+Video demostrativo: https://youtu.be/YeeFKg6BITM
+
 Crédito al contenido de terceros
 - https://sketchfab.com/VitSh
 - https://sketchfab.com/Inuciian
